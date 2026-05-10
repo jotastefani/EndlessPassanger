@@ -1,0 +1,130 @@
+import { useState } from 'react';
+
+import {
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from 'react-native';
+
+import { router } from 'expo-router';
+
+import { useAuth } from '@/hooks/useAuth';
+
+export default function LoginScreen() {
+  const { signIn } = useAuth();
+
+  const [email, setEmail] = useState('');
+  const [password, setPassword] =
+    useState('');
+
+  async function handleLogin() {
+    if (!email || !password) {
+      alert('Preencha todos os campos');
+
+      return;
+    }
+
+    await signIn(email, password);
+
+    router.replace('/(tabs)');
+  }
+
+  return (
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: '#0F0F11',
+        justifyContent: 'center',
+        padding: 24,
+      }}
+    >
+      <Text
+        style={{
+          color: '#FFFFFF',
+          fontSize: 32,
+          fontWeight: 'bold',
+          marginBottom: 12,
+        }}
+      >
+        Entrar
+      </Text>
+
+      <Text
+        style={{
+          color: '#A0A0B2',
+          fontSize: 16,
+          marginBottom: 32,
+        }}
+      >
+        Acesse sua conta do EndPass
+      </Text>
+
+      <TextInput
+        placeholder="E-mail"
+        placeholderTextColor="#777"
+        value={email}
+        onChangeText={setEmail}
+        autoCapitalize="none"
+        keyboardType="email-address"
+        style={{
+          backgroundColor: '#1A1A1F',
+          color: '#FFFFFF',
+          padding: 16,
+          borderRadius: 12,
+          marginBottom: 16,
+        }}
+      />
+
+      <TextInput
+        placeholder="Senha"
+        placeholderTextColor="#777"
+        secureTextEntry
+        value={password}
+        onChangeText={setPassword}
+        style={{
+          backgroundColor: '#1A1A1F',
+          color: '#FFFFFF',
+          padding: 16,
+          borderRadius: 12,
+          marginBottom: 24,
+        }}
+      />
+
+      <TouchableOpacity
+        onPress={handleLogin}
+        style={{
+          backgroundColor: '#7B61FF',
+          padding: 16,
+          borderRadius: 12,
+          alignItems: 'center',
+        }}
+      >
+        <Text
+          style={{
+            color: '#FFFFFF',
+            fontWeight: 'bold',
+            fontSize: 16,
+          }}
+        >
+          Entrar
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        onPress={() => router.push('/register')}
+      >
+        <Text
+          style={{
+            color: '#7B61FF',
+            marginTop: 24,
+            textAlign: 'center',
+            fontSize: 16,
+          }}
+        >
+          Criar conta
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
