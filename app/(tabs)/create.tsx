@@ -14,12 +14,13 @@ import * as ImagePicker from 'expo-image-picker';
 
 const categories = [
   'Festa',
-  'Bar',
   'Show',
   'Teatro',
   'Palestra',
-  'Privado',
+  'Festival',
+  'Stand-up',
 ];
+
 const genres = [
   'Sertanejo',
   'Funk',
@@ -31,12 +32,6 @@ const genres = [
   'Pop',
 ];
 
-const [genre, setGenre] =
-  useState('Sertanejo');
-
-const [artist, setArtist] =
-  useState('');
-
 export default function CreateEventScreen() {
   const [title, setTitle] = useState('');
 
@@ -46,17 +41,35 @@ export default function CreateEventScreen() {
   const [category, setCategory] =
     useState('Festa');
 
+  const [genre, setGenre] =
+    useState('Sertanejo');
+
+  const [ticketLink, setTicketLink] =
+    useState('');
+
+  const [artist, setArtist] =
+    useState('');
+
   const [privateEvent, setPrivateEvent] =
     useState(false);
 
   const [image, setImage] = useState('');
 
   async function handleSelectImage() {
+    const permission =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (!permission.granted) {
+      alert(
+        'Permissão para acessar a galeria negada.'
+      );
+
+      return;
+    }
+
     const result =
       await ImagePicker.launchImageLibraryAsync({
-        mediaTypes:
-          ImagePicker.MediaTypeOptions.Images,
-
+        mediaTypes: ['images'],
         quality: 1,
       });
 
@@ -66,12 +79,23 @@ export default function CreateEventScreen() {
   }
 
   function handleCreateEvent() {
+    if (!title.trim()) {
+      alert('Digite um título');
+      return;
+    }
+
+    if (!description.trim()) {
+      alert('Digite uma descrição');
+      return;
+    }
+
     const newEvent = {
       title,
       description,
       category,
       genre,
       artist,
+      ticketLink,
       privateEvent,
       image,
     };
@@ -159,17 +183,7 @@ export default function CreateEventScreen() {
         ]}
       />
 
-      {/* Categorias */}
-      <Text
-        style={labelStyle}
-      >
-        Categoria
-      </Text>
-      <Text
-        style={labelStyle}
-      >
-        Gênero Musical
-      </Text>
+      {/* Artista */}
       <TextInput
         placeholder="Artista / Palestrante / Comediante"
         placeholderTextColor="#777"
@@ -177,6 +191,20 @@ export default function CreateEventScreen() {
         onChangeText={setArtist}
         style={inputStyle}
       />
+
+      {/* Link ingresso */}
+      <TextInput
+        placeholder="Link do ingresso"
+        placeholderTextColor="#777"
+        value={ticketLink}
+        onChangeText={setTicketLink}
+        style={inputStyle}
+      />
+
+      {/* Gênero */}
+      <Text style={labelStyle}>
+        Gênero Musical
+      </Text>
 
       <ScrollView
         horizontal
@@ -214,15 +242,17 @@ export default function CreateEventScreen() {
         ))}
       </ScrollView>
 
+      {/* Categoria */}
+      <Text style={labelStyle}>
+        Categoria
+      </Text>
+
       <ScrollView
         horizontal
-        showsHorizontalScrollIndicator={
-          false
-        }
+        showsHorizontalScrollIndicator={false}
         style={{
           marginBottom: 24,
         }}
-
       >
         {categories.map((item) => (
           <TouchableOpacity
@@ -282,6 +312,7 @@ export default function CreateEventScreen() {
           padding: 18,
           borderRadius: 16,
           alignItems: 'center',
+          marginBottom: 40,
         }}
       >
         <Text

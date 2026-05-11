@@ -35,6 +35,8 @@ export type Event = {
 
   artist?: string;
 
+  ticketLink?: string;
+
   type: EventType;
 
   latitude: number;

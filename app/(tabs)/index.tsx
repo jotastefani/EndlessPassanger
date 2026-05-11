@@ -192,24 +192,24 @@ export default function HomeScreen() {
             }
           />
         )}
-      />
-      ListEmptyComponent={
-        <View
-          style={{
-            marginTop: 80,
-            alignItems: 'center',
-          }}
-        >
-          <Text
+        ListEmptyComponent={
+          <View
             style={{
-              color: '#777',
-              fontSize: 18,
+              marginTop: 80,
+              alignItems: 'center',
             }}
           >
-            Nenhum evento encontrado
-          </Text>
-        </View>
-      }
+            <Text
+              style={{
+                color: '#777',
+                fontSize: 18,
+              }}
+            >
+              Nenhum evento encontrado
+            </Text>
+          </View>
+        }
+      />
     </View>
   );
 }
