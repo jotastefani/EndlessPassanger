@@ -1,25 +1,20 @@
 import {
   createContext,
+  ReactNode,
   useContext,
   useState,
 } from 'react';
 
-import { users } from '@/mocks/users';
-
 type User = {
-  id: string;
-
-  type: string;
-
   email: string;
-
-  password: string;
 
   name?: string;
 
+  companyName?: string;
+
   avatar?: string;
 
-  companyName?: string;
+  type: 'CPF' | 'CNPJ';
 };
 
 type AuthContextData = {
@@ -28,39 +23,73 @@ type AuthContextData = {
   signIn: (
     email: string,
     password: string
-  ) => boolean;
+  ) => Promise<boolean>;
+
+  signUp: (
+    email: string,
+    password: string
+  ) => Promise<boolean>;
 
   signOut: () => void;
 };
 
 export const AuthContext =
-  createContext({} as AuthContextData);
+  createContext<AuthContextData>(
+    {} as AuthContextData
+  );
+
+type Props = {
+  children: ReactNode;
+};
 
 export function AuthProvider({
   children,
-}: {
-  children: React.ReactNode;
-}) {
+}: Props) {
   const [user, setUser] =
     useState<User | null>(null);
 
-  function signIn(
+  async function signIn(
     email: string,
     password: string
   ) {
-    const foundUser = users.find(
-      (item) =>
-        item.email === email &&
-        item.password === password
-    );
+    try {
+      setUser({
+        email,
 
-    if (!foundUser) {
+        name: 'Jeferson',
+
+        avatar:
+          'https://i.pravatar.cc/300',
+
+        type: 'CPF',
+      });
+
+      return true;
+    } catch {
       return false;
     }
+  }
 
-    setUser(foundUser);
+  async function signUp(
+    email: string,
+    password: string
+  ) {
+    try {
+      setUser({
+        email,
 
-    return true;
+        name: 'Novo usuário',
+
+        avatar:
+          'https://i.pravatar.cc/300',
+
+        type: 'CPF',
+      });
+
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   function signOut() {
@@ -72,6 +101,7 @@ export function AuthProvider({
       value={{
         user,
         signIn,
+        signUp,
         signOut,
       }}
     >

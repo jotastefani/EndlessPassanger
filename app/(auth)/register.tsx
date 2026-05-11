@@ -1,12 +1,43 @@
+import { useState } from 'react';
+
 import {
-    Text,
-    TouchableOpacity,
-    View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 import { router } from 'expo-router';
 
+import { useAuth } from '@/hooks/useAuth';
+
 export default function RegisterScreen() {
+  const {
+    signUp,
+  } = useAuth();
+
+  const [email, setEmail] =
+    useState('');
+
+  const [password, setPassword] =
+    useState('');
+
+  async function handleRegister() {
+    const success =
+      await signUp(
+        email,
+        password
+      );
+
+    if (!success) {
+      alert('Erro ao cadastrar');
+
+      return;
+    }
+
+    router.replace('/(tabs)');
+  }
+
   return (
     <View
       style={{
@@ -19,83 +50,64 @@ export default function RegisterScreen() {
       <Text
         style={{
           color: '#FFFFFF',
-          fontSize: 32,
+          fontSize: 34,
           fontWeight: 'bold',
-          marginBottom: 16,
+          marginBottom: 40,
         }}
       >
-        Criar Conta
+        Criar conta
       </Text>
 
-      <Text
-        style={{
-          color: '#A0A0B2',
-          marginBottom: 32,
-        }}
-      >
-        Escolha o tipo da sua conta
-      </Text>
+      <TextInput
+        placeholder="Email"
+        placeholderTextColor="#777"
+        value={email}
+        onChangeText={setEmail}
+        autoCapitalize="none"
+        style={inputStyle}
+      />
+
+      <TextInput
+        placeholder="Senha"
+        placeholderTextColor="#777"
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
+        style={inputStyle}
+      />
 
       <TouchableOpacity
-        onPress={() =>
-          router.push('/register-cpf')
-        }
+        onPress={handleRegister}
         style={{
-          backgroundColor: '#1A1A1F',
-          padding: 20,
+          backgroundColor: '#7B61FF',
+          padding: 18,
           borderRadius: 16,
-          marginBottom: 16,
+          alignItems: 'center',
+          marginTop: 20,
         }}
       >
         <Text
           style={{
             color: '#FFFFFF',
-            fontSize: 20,
             fontWeight: 'bold',
+            fontSize: 16,
           }}
         >
-          CPF
-        </Text>
-
-        <Text
-          style={{
-            color: '#A0A0B2',
-            marginTop: 8,
-          }}
-        >
-          Participar de eventos
-        </Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        onPress={() =>
-          router.push('/register-cnpj')
-        }
-        style={{
-          backgroundColor: '#1A1A1F',
-          padding: 20,
-          borderRadius: 16,
-        }}
-      >
-        <Text
-          style={{
-            color: '#FFFFFF',
-            fontSize: 20,
-            fontWeight: 'bold',
-          }}
-        >
-          CNPJ
-        </Text>
-
-        <Text
-          style={{
-            color: '#A0A0B2',
-            marginTop: 8,
-          }}
-        >
-          Criar e divulgar eventos
+          Criar conta
         </Text>
       </TouchableOpacity>
     </View>
   );
 }
+
+const inputStyle = {
+  backgroundColor: '#1A1A1F',
+
+  color: '#FFFFFF',
+
+  padding: 16,
+
+  borderRadius: 16,
+
+  marginBottom: 16,
+};

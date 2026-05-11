@@ -1,8 +1,7 @@
 import {
-    createContext,
-    useContext,
-    useEffect,
-    useState,
+  createContext,
+  useEffect,
+  useState
 } from 'react';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -41,7 +40,7 @@ type FavoritesContextData = {
   ) => boolean;
 };
 
-const FavoritesContext =
+export const FavoritesContext =
   createContext({} as FavoritesContextData);
 
 export function FavoritesProvider({
@@ -115,11 +114,5 @@ export function FavoritesProvider({
     >
       {children}
     </FavoritesContext.Provider>
-  );
-}
-
-export function useFavorites() {
-  return useContext(
-    FavoritesContext
   );
 }

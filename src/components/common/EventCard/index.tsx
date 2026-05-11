@@ -5,7 +5,7 @@ import {
 } from 'lucide-react-native';
 
 
-import { useFavorites } from '@/contexts/favorites-context';
+import { useFavorites } from '@/hooks/useFavorites';
 
 import {
   Image,
@@ -15,11 +15,12 @@ import {
 } from 'react-native';
 
 type Props = {
+  
   title: string;
   location: string;
   date: string;
   image: string;
-
+  id: string;
   artist: string;
 
   genre: string;
@@ -28,6 +29,7 @@ type Props = {
 };
 
 export function EventCard({
+  id,
   title,
   location,
   date,
@@ -49,7 +51,7 @@ export function EventCard({
   } = useFavorites();
 
   const favorite =
-    isFavorite(title);
+    isFavorite(id);
 
   function handleInterest() {
     if (interested) {
@@ -63,7 +65,7 @@ export function EventCard({
 
   function handleFavorite() {
     const eventData = {
-      id: title,
+      id,
 
       title,
 
@@ -81,7 +83,7 @@ export function EventCard({
     };
 
     if (favorite) {
-      removeFavorite(title);
+      removeFavorite(id);
     } else {
       addFavorite(eventData);
     }

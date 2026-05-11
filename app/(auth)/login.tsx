@@ -19,16 +19,20 @@ export default function LoginScreen() {
     useState('');
 
   async function handleLogin() {
-    if (!email || !password) {
-      alert('Preencha todos os campos');
+  const success =
+    await signIn(
+      email,
+      password
+    );
 
-      return;
-    }
+  if (!success) {
+    alert('Login inválido');
 
-    await signIn(email, password);
-
-    router.replace('/(tabs)');
+    return;
   }
+
+  router.replace('/(tabs)');
+}
 
   return (
     <View

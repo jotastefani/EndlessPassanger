@@ -4,7 +4,7 @@ import {
   View,
 } from 'react-native';
 
-import { useFavorites } from '@/contexts/favorites-context';
+import { useFavorites } from '@/hooks/useFavorites';
 
 import { EventCard } from '@/components/common/EventCard';
 
