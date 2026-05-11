@@ -57,7 +57,7 @@ export default function HomeScreen() {
           selectedGenre === 'Todos'
             ? true
             : event.genre ===
-              selectedGenre;
+            selectedGenre;
 
         return (
           matchesSearch &&
@@ -193,6 +193,23 @@ export default function HomeScreen() {
           />
         )}
       />
+      ListEmptyComponent={
+        <View
+          style={{
+            marginTop: 80,
+            alignItems: 'center',
+          }}
+        >
+          <Text
+            style={{
+              color: '#777',
+              fontSize: 18,
+            }}
+          >
+            Nenhum evento encontrado
+          </Text>
+        </View>
+      }
     </View>
   );
 }
