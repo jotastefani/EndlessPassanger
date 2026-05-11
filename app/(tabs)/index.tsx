@@ -1,115 +1,198 @@
+import { useMemo, useState } from 'react';
+
 import {
-  ScrollView,
-  Text
+  FlatList,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
-import { Screen } from '@/components/common/Screen';
-
-import { Header } from '@/components/common/Header';
-
-import { SearchInput } from '@/components/common/SearchInput';
-
-import { CategoryCard } from '@/components/common/CategoryCard';
+import { events } from '@/mocks/events';
 
 import { EventCard } from '@/components/common/EventCard';
 
-const categories = [
-  'Festas',
-  'Shows',
-  'Teatro',
-  'Bares',
-  'Palestras',
-  'Reuniões',
-  'Boates',
-  'Restaurantes',
-  'Lanchonetes',
-  'Adegas',
-];
-
-const events = [
-  {
-    id: '1',
-    title: 'Festival Sunset',
-    location: 'Piracicaba - SP',
-    date: '12 Maio • 22:00',
-    image:
-      'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f',
-  },
-
-  {
-    id: '2',
-    title: 'Noite Universitária',
-    location: 'Campinas - SP',
-    date: '18 Maio • 23:00',
-    image:
-      'https://images.unsplash.com/photo-1501386761578-eac5c94b800a',
-  },
+const genres = [
+  'Todos',
+  'Sertanejo',
+  'Funk',
+  'Pagode',
+  'Eletrônica',
+  'Rock',
+  'Trap',
+  'Rap',
+  'Pop',
 ];
 
 export default function HomeScreen() {
+  const [search, setSearch] =
+    useState('');
+
+  const [selectedGenre, setSelectedGenre] =
+    useState('Todos');
+
+  const filteredEvents =
+    useMemo(() => {
+      return events.filter((event) => {
+        const matchesSearch =
+          event.title
+            .toLowerCase()
+            .includes(
+              search.toLowerCase()
+            ) ||
+
+          event.artist
+            .toLowerCase()
+            .includes(
+              search.toLowerCase()
+            ) ||
+
+          event.location
+            .toLowerCase()
+            .includes(
+              search.toLowerCase()
+            );
+
+        const matchesGenre =
+          selectedGenre === 'Todos'
+            ? true
+            : event.genre ===
+              selectedGenre;
+
+        return (
+          matchesSearch &&
+          matchesGenre
+        );
+      });
+    }, [search, selectedGenre]);
+
   return (
-    <Screen>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: '#0F0F11',
+        paddingTop: 60,
+      }}
+    >
+      {/* Header */}
+      <View
+        style={{
+          paddingHorizontal: 20,
+          marginBottom: 24,
+        }}
       >
-        <Header />
-
-        <SearchInput />
-
         <Text
           style={{
             color: '#FFFFFF',
-            fontSize: 22,
+            fontSize: 34,
             fontWeight: 'bold',
-            marginBottom: 16,
           }}
         >
-          Categorias
+          EndPass
         </Text>
 
-        <ScrollView
+        <Text
+          style={{
+            color: '#A0A0B2',
+            marginTop: 4,
+          }}
+        >
+          Descubra eventos próximos
+        </Text>
+      </View>
+
+      {/* Busca */}
+      <View
+        style={{
+          paddingHorizontal: 20,
+          marginBottom: 20,
+        }}
+      >
+        <TextInput
+          placeholder="Buscar artista, cidade ou evento"
+          placeholderTextColor="#777"
+          value={search}
+          onChangeText={setSearch}
+          style={{
+            backgroundColor: '#1A1A1F',
+            color: '#FFFFFF',
+            padding: 16,
+            borderRadius: 16,
+          }}
+        />
+      </View>
+
+      {/* Filtros */}
+      <View
+        style={{
+          marginBottom: 24,
+        }}
+      >
+        <FlatList
           horizontal
+          data={genres}
+          keyExtractor={(item) => item}
           showsHorizontalScrollIndicator={
             false
           }
-          style={{
-            marginBottom: 32,
+          contentContainerStyle={{
+            paddingHorizontal: 20,
           }}
-        >
-          {categories.map((category) => (
-            <CategoryCard
-              key={category}
-              title={category}
-            />
-          ))}
-        </ScrollView>
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              onPress={() =>
+                setSelectedGenre(item)
+              }
+              style={{
+                backgroundColor:
+                  selectedGenre === item
+                    ? '#7B61FF'
+                    : '#1A1A1F',
 
-        <Text
-          style={{
-            color: '#FFFFFF',
-            fontSize: 22,
-            fontWeight: 'bold',
-            marginBottom: 16,
-          }}
-        >
-          Eventos próximos
-        </Text>
+                paddingVertical: 12,
 
-        {events.map((event) => (
+                paddingHorizontal: 18,
+
+                borderRadius: 14,
+
+                marginRight: 12,
+              }}
+            >
+              <Text
+                style={{
+                  color: '#FFFFFF',
+                  fontWeight: '600',
+                }}
+              >
+                {item}
+              </Text>
+            </TouchableOpacity>
+          )}
+        />
+      </View>
+
+      {/* Eventos */}
+      <FlatList
+        data={filteredEvents}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={{
+          paddingHorizontal: 20,
+          paddingBottom: 120,
+        }}
+        renderItem={({ item }) => (
           <EventCard
-            key={event.id}
-            title={event.title}
-            location={event.location}
-            date={event.date}
-            image={event.image}
-            artist={event.artist}
-            genre={event.genre}
+            title={item.title}
+            location={item.location}
+            date={item.date}
+            image={item.image}
+            artist={item.artist}
+            genre={item.genre}
             interestedCount={
-              event.interestedCount
+              item.interestedCount
             }
           />
-        ))}
-      </ScrollView>
-    </Screen>
+        )}
+      />
+    </View>
   );
 }
