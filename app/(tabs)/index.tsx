@@ -102,6 +102,11 @@ export default function HomeScreen() {
             location={event.location}
             date={event.date}
             image={event.image}
+            artist={event.artist}
+            genre={event.genre}
+            interestedCount={
+              event.interestedCount
+            }
           />
         ))}
       </ScrollView>

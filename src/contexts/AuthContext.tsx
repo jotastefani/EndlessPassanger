@@ -1,76 +1,68 @@
 import {
-    createContext,
-    ReactNode,
-    useEffect,
-    useState,
+  createContext,
+  useContext,
+  useState,
 } from 'react';
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { users } from '@/mocks/users';
 
 type User = {
   id: string;
-  name: string;
+
+  type: string;
+
   email: string;
-  type: 'CPF' | 'CNPJ';
+
+  password: string;
+
+  name?: string;
+
+  companyName?: string;
 };
 
 type AuthContextData = {
   user: User | null;
-  signIn: (email: string, password: string) => Promise<void>;
-  signOut: () => Promise<void>;
-};
 
-type Props = {
-  children: ReactNode;
+  signIn: (
+    email: string,
+    password: string
+  ) => boolean;
+
+  signOut: () => void;
 };
 
 export const AuthContext =
   createContext({} as AuthContextData);
 
-export function AuthProvider({ children }: Props) {
-  const [user, setUser] = useState<User | null>(null);
+export function AuthProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const [user, setUser] =
+    useState<User | null>(null);
 
-  useEffect(() => {
-    loadUser();
-  }, []);
-
-  async function loadUser() {
-    const userData = await AsyncStorage.getItem(
-      '@endpass:user'
-    );
-
-    if (userData) {
-      setUser(JSON.parse(userData));
-    }
-  }
-
-  async function signIn(
+  function signIn(
     email: string,
     password: string
   ) {
-    // simulação login
-
-    const fakeUser: User = {
-      id: '1',
-      name: 'Jeferson',
-      email,
-      type: 'CPF',
-    };
-
-    setUser(fakeUser);
-
-    await AsyncStorage.setItem(
-      '@endpass:user',
-      JSON.stringify(fakeUser)
+    const foundUser = users.find(
+      (item) =>
+        item.email === email &&
+        item.password === password
     );
+
+    if (!foundUser) {
+      return false;
+    }
+
+    setUser(foundUser);
+
+    return true;
   }
 
-  async function signOut() {
+  function signOut() {
     setUser(null);
-
-    await AsyncStorage.removeItem(
-      '@endpass:user'
-    );
   }
 
   return (
@@ -84,4 +76,8 @@ export function AuthProvider({ children }: Props) {
       {children}
     </AuthContext.Provider>
   );
+}
+
+export function useAuth() {
+  return useContext(AuthContext);
 }

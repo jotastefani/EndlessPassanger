@@ -1,19 +1,53 @@
-import { Text } from 'react-native';
+import {
+  FlatList,
+  Text,
+  View,
+} from 'react-native';
 
-import { Screen } from '@/components/common/Screen';
+import { useFavorites } from '@/contexts/favorites-context';
+
+import { EventCard } from '@/components/common/EventCard';
 
 export default function FavoritesScreen() {
+  const { favorites } =
+    useFavorites();
+
   return (
-    <Screen>
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: '#0F0F11',
+        padding: 20,
+      }}
+    >
       <Text
         style={{
           color: '#FFFFFF',
-          fontSize: 24,
+          fontSize: 32,
           fontWeight: 'bold',
+          marginBottom: 24,
         }}
       >
         Favoritos
       </Text>
-    </Screen>
+
+      <FlatList
+        data={favorites}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <EventCard
+            title={item.title}
+            location={item.location}
+            date={item.date}
+            image={item.image}
+            artist={item.artist}
+            genre={item.genre}
+            interestedCount={
+              item.interestedCount
+            }
+          />
+        )}
+      />
+    </View>
   );
 }
