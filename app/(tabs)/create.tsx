@@ -12,6 +12,12 @@ import {
 
 import * as ImagePicker from 'expo-image-picker';
 
+import { router } from 'expo-router';
+
+import {
+  createEvent,
+} from '@/services/events/firebase-events';
+
 const categories = [
   'Festa',
   'Show',
@@ -33,7 +39,8 @@ const genres = [
 ];
 
 export default function CreateEventScreen() {
-  const [title, setTitle] = useState('');
+  const [title, setTitle] =
+    useState('');
 
   const [description, setDescription] =
     useState('');
@@ -53,7 +60,8 @@ export default function CreateEventScreen() {
   const [privateEvent, setPrivateEvent] =
     useState(false);
 
-  const [image, setImage] = useState('');
+  const [image, setImage] =
+    useState('');
 
   async function handleSelectImage() {
     const permission =
@@ -61,7 +69,7 @@ export default function CreateEventScreen() {
 
     if (!permission.granted) {
       alert(
-        'Permissão para acessar a galeria negada.'
+        'Permissão negada.'
       );
 
       return;
@@ -69,40 +77,75 @@ export default function CreateEventScreen() {
 
     const result =
       await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images'],
+        mediaTypes:
+          ImagePicker.MediaTypeOptions.Images,
+
         quality: 1,
       });
 
     if (!result.canceled) {
-      setImage(result.assets[0].uri);
+      setImage(
+        result.assets[0].uri
+      );
     }
   }
 
-  function handleCreateEvent() {
+  async function handleCreateEvent() {
     if (!title.trim()) {
-      alert('Digite um título');
+      alert(
+        'Digite um título'
+      );
+
       return;
     }
 
     if (!description.trim()) {
-      alert('Digite uma descrição');
+      alert(
+        'Digite uma descrição'
+      );
+
       return;
     }
 
     const newEvent = {
       title,
+
       description,
+
       category,
+
       genre,
+
       artist,
+
       ticketLink,
+
       privateEvent,
+
       image,
+
+      interestedCount: 0,
+
+      createdAt:
+        new Date(),
     };
 
-    console.log(newEvent);
+    const eventId =
+      await createEvent(newEvent);
 
-    alert('Evento criado!');
+    if (!eventId) {
+      alert(
+        'Erro ao criar evento'
+      );
+
+      return;
+    }
+
+    alert(
+      'Evento criado com sucesso!'
+    );
+
+    router.push('/(tabs)');
   }
 
   return (
@@ -126,7 +169,6 @@ export default function CreateEventScreen() {
         Criar Evento
       </Text>
 
-      {/* Imagem */}
       <TouchableOpacity
         onPress={handleSelectImage}
         style={{
@@ -141,7 +183,9 @@ export default function CreateEventScreen() {
       >
         {image ? (
           <Image
-            source={{ uri: image }}
+            source={{
+              uri: image,
+            }}
             style={{
               width: '100%',
               height: '100%',
@@ -158,7 +202,6 @@ export default function CreateEventScreen() {
         )}
       </TouchableOpacity>
 
-      {/* Título */}
       <TextInput
         placeholder="Título do evento"
         placeholderTextColor="#777"
@@ -167,7 +210,6 @@ export default function CreateEventScreen() {
         style={inputStyle}
       />
 
-      {/* Descrição */}
       <TextInput
         placeholder="Descrição"
         placeholderTextColor="#777"
@@ -183,16 +225,14 @@ export default function CreateEventScreen() {
         ]}
       />
 
-      {/* Artista */}
       <TextInput
-        placeholder="Artista / Palestrante / Comediante"
+        placeholder="Artista / Palestrante"
         placeholderTextColor="#777"
         value={artist}
         onChangeText={setArtist}
         style={inputStyle}
       />
 
-      {/* Link ingresso */}
       <TextInput
         placeholder="Link do ingresso"
         placeholderTextColor="#777"
@@ -201,7 +241,6 @@ export default function CreateEventScreen() {
         style={inputStyle}
       />
 
-      {/* Gênero */}
       <Text style={labelStyle}>
         Gênero Musical
       </Text>
@@ -242,7 +281,6 @@ export default function CreateEventScreen() {
         ))}
       </ScrollView>
 
-      {/* Categoria */}
       <Text style={labelStyle}>
         Categoria
       </Text>
@@ -283,7 +321,6 @@ export default function CreateEventScreen() {
         ))}
       </ScrollView>
 
-      {/* Evento privado */}
       <View
         style={{
           flexDirection: 'row',
@@ -292,19 +329,18 @@ export default function CreateEventScreen() {
           marginBottom: 32,
         }}
       >
-        <Text
-          style={labelStyle}
-        >
+        <Text style={labelStyle}>
           Evento privado
         </Text>
 
         <Switch
           value={privateEvent}
-          onValueChange={setPrivateEvent}
+          onValueChange={
+            setPrivateEvent
+          }
         />
       </View>
 
-      {/* Botão */}
       <TouchableOpacity
         onPress={handleCreateEvent}
         style={{
@@ -331,15 +367,22 @@ export default function CreateEventScreen() {
 
 const inputStyle = {
   backgroundColor: '#1A1A1F',
+
   color: '#FFFFFF',
+
   padding: 16,
-  borderRadius: 14,
-  marginBottom: 20,
+
+  borderRadius: 16,
+
+  marginBottom: 16,
 };
 
 const labelStyle = {
   color: '#FFFFFF',
+
   fontSize: 18,
+
   fontWeight: 'bold' as const,
+
   marginBottom: 12,
 };
