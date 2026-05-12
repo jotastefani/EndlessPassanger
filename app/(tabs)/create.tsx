@@ -113,14 +113,13 @@ export default function CreateEventScreen() {
     }
 
     const result =
-      await ImagePicker.launchImageLibraryAsync({
-        mediaTypes:
-          ImagePicker.MediaTypeOptions.Images,
+  await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ['images'],
 
-        quality: 1,
+    quality: 1,
 
-        allowsEditing: true,
-      });
+    allowsEditing: true,
+  });
 
     if (!result.canceled) {
       setImage(

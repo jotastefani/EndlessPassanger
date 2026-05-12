@@ -1,9 +1,16 @@
 import {
   createContext,
   ReactNode,
-  useContext,
+  useEffect,
   useState,
 } from 'react';
+
+import {
+  onAuthStateChanged,
+  User,
+} from 'firebase/auth';
+
+import { auth } from '@/services/firebase-config';
 
 import {
   loginUser,
@@ -11,8 +18,28 @@ import {
   registerUser,
 } from '@/services/auth/firebase-auth';
 
+import {
+  createUserProfile,
+  getUserProfile,
+} from '@/services/users/firebase-users';
+
+type UserData = {
+  uid: string;
+
+  email: string;
+
+  name: string;
+
+  companyName?: string;
+
+  type: string;
+
+  avatar: string;
+};
 type AuthContextData = {
-  user: any;
+  user: UserData | null;
+
+  loading: boolean;
 
   signIn: (
     email: string,
@@ -20,11 +47,13 @@ type AuthContextData = {
   ) => Promise<boolean>;
 
   signUp: (
+    name: string,
     email: string,
-    password: string
+    password: string,
+    type: string
   ) => Promise<boolean>;
 
-  signOut: () => Promise<void>;
+  signOutUser: () => Promise<void>;
 };
 
 export const AuthContext =
@@ -38,51 +67,106 @@ export function AuthProvider({
   children,
 }: Props) {
   const [user, setUser] =
-    useState<any>(null);
+    useState<UserData | null>(null);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  useEffect(() => {
+    const unsubscribe =
+      onAuthStateChanged(
+        auth,
+        async (
+          firebaseUser: User | null
+        ) => {
+          if (firebaseUser) {
+            const profile =
+              await getUserProfile(
+                firebaseUser.uid
+              );
+
+            if (profile) {
+              setUser(profile as UserData);
+            }
+          } else {
+            setUser(null);
+          }
+
+          setLoading(false);
+        }
+      );
+
+    return unsubscribe;
+  }, []);
 
   async function signIn(
     email: string,
     password: string
   ) {
-    try {
-      const response =
-        await loginUser(
-          email,
-          password
-        );
+    const response =
+      await loginUser(
+        email,
+        password
+      );
 
-      setUser(response.user);
-
-      return true;
-    } catch (error) {
-      console.log(error);
-
+    if (!response) {
       return false;
     }
+
+    const profile =
+      await getUserProfile(
+        response.uid
+      );
+
+    if (!profile) {
+      return false;
+    }
+
+    setUser(profile as UserData);
+
+    return true;
   }
 
   async function signUp(
+    name: string,
     email: string,
-    password: string
+    password: string,
+    type: string
   ) {
-    try {
-      const response =
-        await registerUser(
-          email,
-          password
-        );
+    const response =
+      await registerUser(
+        email,
+        password
+      );
 
-      setUser(response.user);
-
-      return true;
-    } catch (error) {
-      console.log(error);
-
+    if (!response) {
       return false;
     }
+
+    const userData = {
+      uid: response.uid,
+
+      name,
+
+      email,
+
+      type,
+
+      avatar:
+        'https://i.pravatar.cc/300',
+    };
+
+    await createUserProfile(
+      response.uid,
+      userData
+    );
+
+    setUser(userData);
+
+    return true;
   }
 
-  async function signOut() {
+  async function signOutUser() {
     await logoutUser();
 
     setUser(null);
@@ -92,16 +176,13 @@ export function AuthProvider({
     <AuthContext.Provider
       value={{
         user,
+        loading,
         signIn,
         signUp,
-        signOut,
+        signOutUser,
       }}
     >
       {children}
     </AuthContext.Provider>
   );
-}
-
-export function useAuth() {
-  return useContext(AuthContext);
 }

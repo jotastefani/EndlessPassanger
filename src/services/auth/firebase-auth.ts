@@ -1,7 +1,7 @@
 import {
   createUserWithEmailAndPassword,
-  signOut as firebaseSignOut,
   signInWithEmailAndPassword,
+  signOut,
 } from 'firebase/auth';
 
 import { auth } from '@/services/firebase-config';
@@ -10,24 +10,50 @@ export async function registerUser(
   email: string,
   password: string
 ) {
-  return await createUserWithEmailAndPassword(
-    auth,
-    email,
-    password
-  );
+  try {
+    const response =
+      await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
+    return response.user;
+  } catch (error) {
+    console.log(error);
+
+    return null;
+  }
 }
 
 export async function loginUser(
   email: string,
   password: string
 ) {
-  return await signInWithEmailAndPassword(
-    auth,
-    email,
-    password
-  );
+  try {
+    const response =
+      await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
+    return response.user;
+  } catch (error) {
+    console.log(error);
+
+    return null;
+  }
 }
 
 export async function logoutUser() {
-  return await firebaseSignOut(auth);
+  try {
+    await signOut(auth);
+
+    return true;
+  } catch (error) {
+    console.log(error);
+
+    return false;
+  }
 }

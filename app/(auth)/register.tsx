@@ -9,12 +9,13 @@ import {
 
 import { router } from 'expo-router';
 
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function RegisterScreen() {
-  const {
-    signUp,
-  } = useAuth();
+  const { signUp } = useAuth();
+
+  const [name, setName] =
+    useState('');
 
   const [email, setEmail] =
     useState('');
@@ -22,11 +23,28 @@ export default function RegisterScreen() {
   const [password, setPassword] =
     useState('');
 
+  const [type, setType] =
+    useState('CPF');
+
   async function handleRegister() {
+    if (
+      !name ||
+      !email ||
+      !password
+    ) {
+      alert(
+        'Preencha todos os campos'
+      );
+
+      return;
+    }
+
     const success =
       await signUp(
+        name,
         email,
-        password
+        password,
+        type
       );
 
     if (!success) {
@@ -59,6 +77,14 @@ export default function RegisterScreen() {
       </Text>
 
       <TextInput
+        placeholder="Nome"
+        placeholderTextColor="#777"
+        value={name}
+        onChangeText={setName}
+        style={inputStyle}
+      />
+
+      <TextInput
         placeholder="Email"
         placeholderTextColor="#777"
         value={email}
@@ -75,6 +101,62 @@ export default function RegisterScreen() {
         secureTextEntry
         style={inputStyle}
       />
+
+      <TouchableOpacity
+        onPress={() =>
+          setType('CPF')
+        }
+        style={{
+          backgroundColor:
+            type === 'CPF'
+              ? '#7B61FF'
+              : '#1A1A1F',
+
+          padding: 16,
+
+          borderRadius: 16,
+
+          marginBottom: 12,
+        }}
+      >
+        <Text
+          style={{
+            color: '#FFFFFF',
+            textAlign: 'center',
+            fontWeight: 'bold',
+          }}
+        >
+          Conta CPF
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        onPress={() =>
+          setType('CNPJ')
+        }
+        style={{
+          backgroundColor:
+            type === 'CNPJ'
+              ? '#7B61FF'
+              : '#1A1A1F',
+
+          padding: 16,
+
+          borderRadius: 16,
+
+          marginBottom: 20,
+        }}
+      >
+        <Text
+          style={{
+            color: '#FFFFFF',
+            textAlign: 'center',
+            fontWeight: 'bold',
+          }}
+        >
+          Conta CNPJ
+        </Text>
+      </TouchableOpacity>
 
       <TouchableOpacity
         onPress={handleRegister}

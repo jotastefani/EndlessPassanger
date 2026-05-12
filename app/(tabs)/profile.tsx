@@ -14,16 +14,16 @@ import {
   User,
 } from 'lucide-react-native';
 
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function ProfileScreen() {
   const {
-    user,
-    signOut,
-  } = useAuth();
+  user,
+  signOutUser,
+} = useAuth();
 
-  function handleLogout() {
-    signOut();
+  async function handleLogout() {
+    await signOutUser();
 
     router.replace('/(auth)/login');
   }
