@@ -1,117 +1,77 @@
-import { useEffect, useState } from 'react';
+import {
+  useEffect,
+  useState,
+} from 'react';
 
 import {
   StyleSheet,
-  Text,
-  View,
+  View
 } from 'react-native';
 
 import MapView, {
   Marker,
 } from 'react-native-maps';
 
-import * as Location from 'expo-location';
-
-import { events } from '@/mocks/events';
+import {
+  getEvents,
+} from '@/services/events/firebase-events';
 
 export default function MapScreen() {
-  const [location, setLocation] =
-    useState<Location.LocationObject | null>(
-      null
-    );
+  const [events, setEvents] =
+    useState<any[]>([]);
 
   useEffect(() => {
-    getUserLocation();
+    loadEvents();
   }, []);
 
-  async function getUserLocation() {
-    const { status } =
-      await Location.requestForegroundPermissionsAsync();
+  async function loadEvents() {
+    const data =
+      await getEvents();
 
-    if (status !== 'granted') {
-      alert(
-        'Permissão de localização negada'
-      );
-
-      return;
-    }
-
-    const currentLocation =
-      await Location.getCurrentPositionAsync(
-        {}
-      );
-
-    setLocation(currentLocation);
-  }
-
-  if (!location) {
-    return (
-      <View style={styles.loadingContainer}>
-        <Text style={styles.loadingText}>
-          Carregando mapa...
-        </Text>
-      </View>
-    );
+    setEvents(data);
   }
 
   return (
-    <MapView
-      style={styles.map}
-      showsUserLocation
-      showsMyLocationButton
-      initialRegion={{
-        latitude:
-          location.coords.latitude,
+    <View style={styles.container}>
+      <MapView
+        style={styles.map}
+        initialRegion={{
+          latitude: -22.7338,
+          longitude: -47.6476,
 
-        longitude:
-          location.coords.longitude,
-
-        latitudeDelta: 0.08,
-        longitudeDelta: 0.08,
-      }}
-    >
-      {/* Usuário */}
-      <Marker
-        coordinate={{
-          latitude:
-            location.coords.latitude,
-
-          longitude:
-            location.coords.longitude,
+          latitudeDelta: 0.08,
+          longitudeDelta: 0.08,
         }}
-        title="Você está aqui"
-      />
+      >
+        {events.map((event) => (
+          <Marker
+            key={event.id}
+            coordinate={{
+              latitude:
+                event.latitude ||
+                -22.7338,
 
-      {/* Eventos */}
-      {events.map((event) => (
-        <Marker
-          key={event.id}
-          coordinate={{
-            latitude: event.latitude,
-            longitude: event.longitude,
-          }}
-          title={event.title}
-          description="Evento próximo de você"
-        />
-      ))}
-    </MapView>
+              longitude:
+                event.longitude ||
+                -47.6476,
+            }}
+            title={event.title}
+            description={
+              event.category
+            }
+          />
+        ))}
+      </MapView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+
   map: {
     flex: 1,
-  },
-
-  loadingContainer: {
-    flex: 1,
-    backgroundColor: '#0F0F11',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
-  loadingText: {
-    color: '#FFFFFF',
-    fontSize: 18,
   },
 });

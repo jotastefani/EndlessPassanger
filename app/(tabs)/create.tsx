@@ -1,4 +1,9 @@
-import { useState } from 'react';
+import {
+  useEffect,
+  useState,
+} from 'react';
+
+import * as Location from 'expo-location';
 
 import {
   Image,
@@ -63,6 +68,38 @@ export default function CreateEventScreen() {
   const [image, setImage] =
     useState('');
 
+  const [latitude, setLatitude] =
+    useState(0);
+
+  const [longitude, setLongitude] =
+    useState(0);
+
+  useEffect(() => {
+    getCurrentLocation();
+  }, []);
+
+  async function getCurrentLocation() {
+    const { status } =
+      await Location.requestForegroundPermissionsAsync();
+
+    if (status !== 'granted') {
+      alert('Permissão de localização negada');
+
+      return;
+    }
+
+    const location =
+      await Location.getCurrentPositionAsync({});
+
+    setLatitude(
+      location.coords.latitude
+    );
+
+    setLongitude(
+      location.coords.longitude
+    );
+  }
+
   async function handleSelectImage() {
     const permission =
       await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -81,6 +118,8 @@ export default function CreateEventScreen() {
           ImagePicker.MediaTypeOptions.Images,
 
         quality: 1,
+
+        allowsEditing: true,
       });
 
     if (!result.canceled) {
@@ -124,10 +163,14 @@ export default function CreateEventScreen() {
 
       image,
 
+      latitude,
+
+      longitude,
+
       interestedCount: 0,
 
       createdAt:
-        new Date(),
+        new Date().toISOString(),
     };
 
     const eventId =

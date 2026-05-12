@@ -5,20 +5,14 @@ import {
   useState,
 } from 'react';
 
-type User = {
-  email: string;
-
-  name?: string;
-
-  companyName?: string;
-
-  avatar?: string;
-
-  type: 'CPF' | 'CNPJ';
-};
+import {
+  loginUser,
+  logoutUser,
+  registerUser,
+} from '@/services/auth/firebase-auth';
 
 type AuthContextData = {
-  user: User | null;
+  user: any;
 
   signIn: (
     email: string,
@@ -30,13 +24,11 @@ type AuthContextData = {
     password: string
   ) => Promise<boolean>;
 
-  signOut: () => void;
+  signOut: () => Promise<void>;
 };
 
 export const AuthContext =
-  createContext<AuthContextData>(
-    {} as AuthContextData
-  );
+  createContext({} as AuthContextData);
 
 type Props = {
   children: ReactNode;
@@ -46,26 +38,25 @@ export function AuthProvider({
   children,
 }: Props) {
   const [user, setUser] =
-    useState<User | null>(null);
+    useState<any>(null);
 
   async function signIn(
     email: string,
     password: string
   ) {
     try {
-      setUser({
-        email,
+      const response =
+        await loginUser(
+          email,
+          password
+        );
 
-        name: 'Jeferson',
-
-        avatar:
-          'https://i.pravatar.cc/300',
-
-        type: 'CPF',
-      });
+      setUser(response.user);
 
       return true;
-    } catch {
+    } catch (error) {
+      console.log(error);
+
       return false;
     }
   }
@@ -75,24 +66,25 @@ export function AuthProvider({
     password: string
   ) {
     try {
-      setUser({
-        email,
+      const response =
+        await registerUser(
+          email,
+          password
+        );
 
-        name: 'Novo usuário',
-
-        avatar:
-          'https://i.pravatar.cc/300',
-
-        type: 'CPF',
-      });
+      setUser(response.user);
 
       return true;
-    } catch {
+    } catch (error) {
+      console.log(error);
+
       return false;
     }
   }
 
-  function signOut() {
+  async function signOut() {
+    await logoutUser();
+
     setUser(null);
   }
 
