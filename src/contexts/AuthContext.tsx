@@ -1,6 +1,7 @@
 import {
   createContext,
   ReactNode,
+  useContext,
   useEffect,
   useState,
 } from 'react';
@@ -36,6 +37,7 @@ type UserData = {
 
   avatar: string;
 };
+
 type AuthContextData = {
   user: UserData | null;
 
@@ -103,28 +105,34 @@ export function AuthProvider({
     email: string,
     password: string
   ) {
-    const response =
-      await loginUser(
-        email,
-        password
-      );
+    try {
+      const response =
+        await loginUser(
+          email,
+          password
+        );
 
-    if (!response) {
+      if (!response) {
+        return false;
+      }
+
+      const profile =
+        await getUserProfile(
+          response.user.uid
+        );
+
+      if (!profile) {
+        return false;
+      }
+
+      setUser(profile as UserData);
+
+      return true;
+    } catch (error) {
+      console.log(error);
+
       return false;
     }
-
-    const profile =
-      await getUserProfile(
-        response.uid
-      );
-
-    if (!profile) {
-      return false;
-    }
-
-    setUser(profile as UserData);
-
-    return true;
   }
 
   async function signUp(
@@ -133,37 +141,43 @@ export function AuthProvider({
     password: string,
     type: string
   ) {
-    const response =
-      await registerUser(
+    try {
+      const response =
+        await registerUser(
+          email,
+          password
+        );
+
+      if (!response) {
+        return false;
+      }
+
+      const userData = {
+        uid: response.user.uid,
+
+        name,
+
         email,
-        password
+
+        type,
+
+        avatar:
+          'https://i.pravatar.cc/300',
+      };
+
+      await createUserProfile(
+        response.user.uid,
+        userData
       );
 
-    if (!response) {
+      setUser(userData);
+
+      return true;
+    } catch (error) {
+      console.log(error);
+
       return false;
     }
-
-    const userData = {
-      uid: response.uid,
-
-      name,
-
-      email,
-
-      type,
-
-      avatar:
-        'https://i.pravatar.cc/300',
-    };
-
-    await createUserProfile(
-      response.uid,
-      userData
-    );
-
-    setUser(userData);
-
-    return true;
   }
 
   async function signOutUser() {
@@ -185,4 +199,8 @@ export function AuthProvider({
       {children}
     </AuthContext.Provider>
   );
+}
+
+export function useAuth() {
+  return useContext(AuthContext);
 }

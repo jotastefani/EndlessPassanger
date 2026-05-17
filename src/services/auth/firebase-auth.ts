@@ -18,7 +18,7 @@ export async function registerUser(
         password
       );
 
-    return response.user;
+    return response;
   } catch (error) {
     console.log(error);
 
@@ -38,7 +38,7 @@ export async function loginUser(
         password
       );
 
-    return response.user;
+    return response;
   } catch (error) {
     console.log(error);
 
@@ -49,11 +49,7 @@ export async function loginUser(
 export async function logoutUser() {
   try {
     await signOut(auth);
-
-    return true;
   } catch (error) {
     console.log(error);
-
-    return false;
   }
 }

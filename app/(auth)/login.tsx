@@ -14,25 +14,27 @@ import { useAuth } from '@/contexts/AuthContext';
 export default function LoginScreen() {
   const { signIn } = useAuth();
 
-  const [email, setEmail] = useState('');
+  const [email, setEmail] =
+    useState('');
+
   const [password, setPassword] =
     useState('');
 
   async function handleLogin() {
-  const success =
-    await signIn(
-      email,
-      password
-    );
+    const success =
+      await signIn(
+        email,
+        password
+      );
 
-  if (!success) {
-    alert('Login inválido');
+    if (!success) {
+      alert('Login inválido');
 
-    return;
+      return;
+    }
+
+    router.replace('/(tabs)');
   }
-
-  router.replace('/(tabs)');
-}
 
   return (
     <View
@@ -48,20 +50,10 @@ export default function LoginScreen() {
           color: '#FFFFFF',
           fontSize: 32,
           fontWeight: 'bold',
-          marginBottom: 12,
-        }}
-      >
-        Entrar
-      </Text>
-
-      <Text
-        style={{
-          color: '#A0A0B2',
-          fontSize: 16,
           marginBottom: 32,
         }}
       >
-        Acesse sua conta do EndPass
+        Entrar
       </Text>
 
       <TextInput
@@ -70,7 +62,6 @@ export default function LoginScreen() {
         value={email}
         onChangeText={setEmail}
         autoCapitalize="none"
-        keyboardType="email-address"
         style={{
           backgroundColor: '#1A1A1F',
           color: '#FFFFFF',
@@ -116,14 +107,15 @@ export default function LoginScreen() {
       </TouchableOpacity>
 
       <TouchableOpacity
-        onPress={() => router.push('/register')}
+        onPress={() =>
+          router.push('/(auth)/register')
+        }
       >
         <Text
           style={{
             color: '#7B61FF',
             marginTop: 24,
             textAlign: 'center',
-            fontSize: 16,
           }}
         >
           Criar conta

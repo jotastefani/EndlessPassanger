@@ -1,215 +1,90 @@
-import { useMemo, useState } from 'react';
-
 import {
-  FlatList,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
 } from 'react-native';
 
-import { events } from '@/mocks/events';
-
-import { EventCard } from '@/components/common/EventCard';
-
-const genres = [
-  'Todos',
-  'Sertanejo',
-  'Funk',
-  'Pagode',
-  'Eletrônica',
-  'Rock',
-  'Trap',
-  'Rap',
-  'Pop',
-];
+import MapView, {
+  Marker,
+} from 'react-native-maps';
 
 export default function HomeScreen() {
-  const [search, setSearch] =
-    useState('');
-
-  const [selectedGenre, setSelectedGenre] =
-    useState('Todos');
-
-  const filteredEvents =
-    useMemo(() => {
-      return events.filter((event) => {
-        const matchesSearch =
-          event.title
-            .toLowerCase()
-            .includes(
-              search.toLowerCase()
-            ) ||
-
-          event.artist
-            .toLowerCase()
-            .includes(
-              search.toLowerCase()
-            ) ||
-
-          event.location
-            .toLowerCase()
-            .includes(
-              search.toLowerCase()
-            );
-
-        const matchesGenre =
-          selectedGenre === 'Todos'
-            ? true
-            : event.genre ===
-            selectedGenre;
-
-        return (
-          matchesSearch &&
-          matchesGenre
-        );
-      });
-    }, [search, selectedGenre]);
-
   return (
     <View
       style={{
         flex: 1,
-        backgroundColor: '#0F0F11',
-        paddingTop: 60,
+        backgroundColor: '#05070A',
       }}
     >
-      {/* Header */}
+      <MapView
+        style={{
+          width: '100%',
+          height: '100%',
+        }}
+        initialRegion={{
+          latitude: -22.7338,
+          longitude: -47.6476,
+          latitudeDelta: 0.08,
+          longitudeDelta: 0.08,
+        }}
+      >
+        <Marker
+          coordinate={{
+            latitude: -22.7338,
+            longitude: -47.6476,
+          }}
+          title="Festival Open Air"
+          description="Evento próximo"
+        />
+
+        <Marker
+          coordinate={{
+            latitude: -22.721,
+            longitude: -47.649,
+          }}
+          title="Show Sertanejo"
+          description="Hoje às 22h"
+        />
+      </MapView>
+
       <View
         style={{
-          paddingHorizontal: 20,
-          marginBottom: 24,
+          position: 'absolute',
+          top: 70,
+          left: 20,
+          right: 20,
+          backgroundColor: '#111318',
+          borderRadius: 24,
+          padding: 20,
+          shadowColor: '#000',
+          shadowOpacity: 0.25,
+          shadowRadius: 12,
+          elevation: 8,
         }}
       >
         <Text
           style={{
             color: '#FFFFFF',
-            fontSize: 34,
+            fontSize: 28,
             fontWeight: 'bold',
+            marginBottom: 16,
           }}
         >
-          EndPass
+          Qual sua próxima aventura?
         </Text>
 
-        <Text
-          style={{
-            color: '#A0A0B2',
-            marginTop: 4,
-          }}
-        >
-          Descubra eventos próximos
-        </Text>
-      </View>
-
-      {/* Busca */}
-      <View
-        style={{
-          paddingHorizontal: 20,
-          marginBottom: 20,
-        }}
-      >
         <TextInput
-          placeholder="Buscar artista, cidade ou evento"
+          placeholder="Pesquisar eventos..."
           placeholderTextColor="#777"
-          value={search}
-          onChangeText={setSearch}
           style={{
             backgroundColor: '#1A1A1F',
             color: '#FFFFFF',
             padding: 16,
             borderRadius: 16,
+            fontSize: 16,
           }}
         />
       </View>
-
-      {/* Filtros */}
-      <View
-        style={{
-          marginBottom: 24,
-        }}
-      >
-        <FlatList
-          horizontal
-          data={genres}
-          keyExtractor={(item) => item}
-          showsHorizontalScrollIndicator={
-            false
-          }
-          contentContainerStyle={{
-            paddingHorizontal: 20,
-          }}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              onPress={() =>
-                setSelectedGenre(item)
-              }
-              style={{
-                backgroundColor:
-                  selectedGenre === item
-                    ? '#7B61FF'
-                    : '#1A1A1F',
-
-                paddingVertical: 12,
-
-                paddingHorizontal: 18,
-
-                borderRadius: 14,
-
-                marginRight: 12,
-              }}
-            >
-              <Text
-                style={{
-                  color: '#FFFFFF',
-                  fontWeight: '600',
-                }}
-              >
-                {item}
-              </Text>
-            </TouchableOpacity>
-          )}
-        />
-      </View>
-
-      {/* Eventos */}
-      <FlatList
-        data={filteredEvents}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={{
-          paddingHorizontal: 20,
-          paddingBottom: 120,
-        }}
-        renderItem={({ item }) => (
-          <EventCard
-            title={item.title}
-            location={item.location}
-            date={item.date}
-            image={item.image}
-            artist={item.artist}
-            genre={item.genre}
-            interestedCount={
-              item.interestedCount
-            }
-          />
-        )}
-        ListEmptyComponent={
-          <View
-            style={{
-              marginTop: 80,
-              alignItems: 'center',
-            }}
-          >
-            <Text
-              style={{
-                color: '#777',
-                fontSize: 18,
-              }}
-            >
-              Nenhum evento encontrado
-            </Text>
-          </View>
-        }
-      />
     </View>
   );
 }
