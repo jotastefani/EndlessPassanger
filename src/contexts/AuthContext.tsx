@@ -105,34 +105,28 @@ export function AuthProvider({
     email: string,
     password: string
   ) {
-    try {
-      const response =
-        await loginUser(
-          email,
-          password
-        );
+    const firebaseUser =
+      await loginUser(
+        email,
+        password
+      );
 
-      if (!response) {
-        return false;
-      }
-
-      const profile =
-        await getUserProfile(
-          response.user.uid
-        );
-
-      if (!profile) {
-        return false;
-      }
-
-      setUser(profile as UserData);
-
-      return true;
-    } catch (error) {
-      console.log(error);
-
+    if (!firebaseUser) {
       return false;
     }
+
+    const profile =
+      await getUserProfile(
+        firebaseUser.uid
+      );
+
+    if (!profile) {
+      return false;
+    }
+
+    setUser(profile as UserData);
+
+    return true;
   }
 
   async function signUp(
@@ -141,43 +135,37 @@ export function AuthProvider({
     password: string,
     type: string
   ) {
-    try {
-      const response =
-        await registerUser(
-          email,
-          password
-        );
-
-      if (!response) {
-        return false;
-      }
-
-      const userData = {
-        uid: response.user.uid,
-
-        name,
-
+    const firebaseUser =
+      await registerUser(
         email,
-
-        type,
-
-        avatar:
-          'https://i.pravatar.cc/300',
-      };
-
-      await createUserProfile(
-        response.user.uid,
-        userData
+        password
       );
 
-      setUser(userData);
-
-      return true;
-    } catch (error) {
-      console.log(error);
-
+    if (!firebaseUser) {
       return false;
     }
+
+    const userData = {
+      uid: firebaseUser.uid,
+
+      name,
+
+      email,
+
+      type,
+
+      avatar:
+        'https://i.pravatar.cc/300',
+    };
+
+    await createUserProfile(
+      firebaseUser.uid,
+      userData
+    );
+
+    setUser(userData);
+
+    return true;
   }
 
   async function signOutUser() {
