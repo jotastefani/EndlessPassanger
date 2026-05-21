@@ -4,7 +4,6 @@ import ChatIcon from '../../assets/icons/chatIcon.svg';
 import HomeIcon from '../../assets/icons/homeIcon.svg';
 import PlusIcon from '../../assets/icons/plusIcon.svg';
 import ProfileIcon from '../../assets/icons/profileIcon.svg';
-import SearchIcon from '../../assets/icons/searchIcon.svg';
 
 export default function TabsLayout() {
   return (
@@ -25,13 +24,9 @@ export default function TabsLayout() {
       />
 
       <Tabs.Screen
-        name="map"
+        name="chat"
         options={{
-          title: 'Mapa',
-
-          tabBarIcon: ({ color }) => (
-            <SearchIcon width={24} height={24} fill={color} />
-          ),
+          title: 'Chat',
         }}
       />
 
