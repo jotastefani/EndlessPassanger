@@ -1,88 +1,19 @@
-import {
-  Image,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { useRouter } from 'expo-router';
+import { useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 
-import { router } from 'expo-router';
+export default function IndexScreen() {
+  const router = useRouter();
+  const { user, loading } = useAuth();
 
-export default function HomeScreen() {
-  return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: '#05070A',
-        padding: 24,
-        justifyContent: 'space-between',
-        alignItems: 'center',
-      }}
-    >
-      <View />
+  useEffect(() => {
+    if (loading) return;
+    if (user) {
+      router.push('/(tabs)/index');
+    } else {
+      router.push('/(auth)/login');
+    }
+  }, [loading, user, router]);
 
-      <Image
-        source={require('../assets/logos/logoendpass.png')}
-        style={{
-          width: 240,
-          height: 240,
-          resizeMode: 'contain',
-        }}
-      />
-
-      <View
-        style={{
-          width: '100%',
-          flexDirection: 'row',
-          gap: 12,
-          marginBottom: 30,
-        }}
-      >
-        <TouchableOpacity
-          onPress={() =>
-            router.push('/(auth)/login')
-          }
-          style={{
-            flex: 1,
-            backgroundColor: '#FFFFFF',
-            paddingVertical: 16,
-            borderRadius: 14,
-            alignItems: 'center',
-          }}
-        >
-          <Text
-            style={{
-              color: '#000',
-              fontWeight: 'bold',
-              fontSize: 16,
-            }}
-          >
-            LOG IN
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={() =>
-            router.push('/(auth)/register')
-          }
-          style={{
-            flex: 1,
-            backgroundColor: '#7B61FF',
-            paddingVertical: 16,
-            borderRadius: 14,
-            alignItems: 'center',
-          }}
-        >
-          <Text
-            style={{
-              color: '#FFF',
-              fontWeight: 'bold',
-              fontSize: 16,
-            }}
-          >
-            REGISTER
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
+  return null;
 }

@@ -1,9 +1,8 @@
-import {
-  useEffect,
-  useState,
-} from 'react';
+import { useEffect, useState } from 'react';
 
 import * as Location from 'expo-location';
+import { Alert } from 'react-native';
+import { ActivityIndicator } from 'react-native';
 
 import {
   Image,
@@ -22,6 +21,10 @@ import { router } from 'expo-router';
 import {
   createEvent,
 } from '@/services/events/firebase-events';
+
+import {
+  useAuth,
+} from '@/contexts/AuthContext';
 
 const categories = [
   'Festa',
@@ -43,61 +46,66 @@ const genres = [
   'Pop',
 ];
 
+type CreateFormState = {
+  title: string;
+  description: string;
+  category: string;
+  genre: string;
+  ticketLink: string;
+  artist: string;
+  privateEvent: boolean;
+  image: string;
+  latitude: number;
+  longitude: number;
+  submitting: boolean;
+};
+
+const initialFormState: CreateFormState = {
+  title: '',
+  description: '',
+  category: 'Festa',
+  genre: 'Sertanejo',
+  ticketLink: '',
+  artist: '',
+  privateEvent: false,
+  image: '',
+  latitude: 0,
+  longitude: 0,
+  submitting: false,
+};
+
 export default function CreateEventScreen() {
-  const [title, setTitle] =
-    useState('');
+  const { user } = useAuth();
 
-  const [description, setDescription] =
-    useState('');
-
-  const [category, setCategory] =
-    useState('Festa');
-
-  const [genre, setGenre] =
-    useState('Sertanejo');
-
-  const [ticketLink, setTicketLink] =
-    useState('');
-
-  const [artist, setArtist] =
-    useState('');
-
-  const [privateEvent, setPrivateEvent] =
-    useState(false);
-
-  const [image, setImage] =
-    useState('');
-
-  const [latitude, setLatitude] =
-    useState(0);
-
-  const [longitude, setLongitude] =
-    useState(0);
+  const [form, setForm] = useState<CreateFormState>(initialFormState);
 
   useEffect(() => {
-    getCurrentLocation();
+    requestLocation();
   }, []);
 
-  async function getCurrentLocation() {
+  async function requestLocation() {
     const { status } =
       await Location.requestForegroundPermissionsAsync();
 
     if (status !== 'granted') {
-      alert('Permissão de localização negada');
+      Alert.alert(
+        'Permissão necessária',
+        'Habilite a localização para vincular o evento a um ponto no mapa.'
+      );
 
       return;
     }
 
-    const location =
-      await Location.getCurrentPositionAsync({});
+    const position =
+      await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
 
-    setLatitude(
-      location.coords.latitude
-    );
-
-    setLongitude(
-      location.coords.longitude
-    );
+    setForm((prev) => ({
+      ...prev,
+      latitude: position.coords.latitude,
+      longitude: position.coords.longitude,
+    }));
   }
 
   async function handleSelectImage() {
@@ -105,326 +113,512 @@ export default function CreateEventScreen() {
       await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (!permission.granted) {
-      alert(
-        'Permissão negada.'
+      Alert.alert(
+        'Permissão negada',
+        'Autorize o acesso à galeria para selecionar a imagem do evento.'
       );
 
       return;
     }
 
     const result =
-  await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: ['images'],
+      await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        quality: 1,
+        allowsEditing: true,
+      });
 
-    quality: 1,
-
-    allowsEditing: true,
-  });
-
-    if (!result.canceled) {
-      setImage(
-        result.assets[0].uri
-      );
+    if (!result.canceled && result.assets[0]) {
+      setForm((prev) => ({
+        ...prev,
+        image: result.assets[0].uri,
+      }));
     }
   }
 
   async function handleCreateEvent() {
-    if (!title.trim()) {
-      alert(
-        'Digite um título'
+    if (!form.title.trim() || !form.description.trim()) {
+      Alert.alert(
+        'Campos obrigatórios',
+        'Informe título e descrição para publicar o evento.'
       );
 
       return;
     }
 
-    if (!description.trim()) {
-      alert(
-        'Digite uma descrição'
-      );
+    setForm((prev) => ({ ...prev, submitting: true }));
 
-      return;
-    }
-
-    const newEvent = {
-      title,
-
-      description,
-
-      category,
-
-      genre,
-
-      artist,
-
-      ticketLink,
-
-      privateEvent,
-
-      image,
-
-      latitude,
-
-      longitude,
-
+    const payload = {
+      title: form.title.trim(),
+      description: form.description.trim(),
+      category: form.category,
+      genre: form.genre,
+      ticketLink: form.ticketLink.trim(),
+      artist: form.artist.trim(),
+      privateEvent:
+        user?.type === 'CPF'
+          ? true
+          : form.privateEvent,
+      image: form.image,
+      latitude: form.latitude,
+      longitude: form.longitude,
       interestedCount: 0,
-
-      createdAt:
-        new Date().toISOString(),
+      createdAt: new Date().toISOString(),
     };
 
-    const eventId =
-      await createEvent(newEvent);
+    const eventId = await createEvent(payload);
 
     if (!eventId) {
-      alert(
-        'Erro ao criar evento'
+      Alert.alert(
+        'Publicação indisponível',
+        'Não foi possível criar o evento. Tente novamente mais tarde.'
       );
+
+      setForm((prev) => ({ ...prev, submitting: false }));
 
       return;
     }
 
-    alert(
-      'Evento criado com sucesso!'
-    );
+    setForm(initialFormState);
 
-    router.push('/(tabs)');
+    Alert.alert('Evento criado', 'Seu evento foi publicado com sucesso!');
+
+    router.push('/(tabs)/index');
   }
+
+  const isSubmitting = form.submitting;
 
   return (
     <ScrollView
-      style={{
-        flex: 1,
-        backgroundColor: '#0F0F11',
-      }}
-      contentContainerStyle={{
-        padding: 24,
-      }}
+      style={styles.container}
+      contentContainerStyle={styles.content}
     >
-      <Text
-        style={{
-          color: '#FFFFFF',
-          fontSize: 32,
-          fontWeight: 'bold',
-          marginBottom: 32,
-        }}
-      >
-        Criar Evento
+      <Text style={styles.title}>Criar Evento</Text>
+      <Text style={styles.subtitle}>
+        Preencha os dados para publicar
       </Text>
 
       <TouchableOpacity
         onPress={handleSelectImage}
-        style={{
-          backgroundColor: '#1A1A1F',
-          height: 200,
-          borderRadius: 20,
-          justifyContent: 'center',
-          alignItems: 'center',
-          marginBottom: 24,
-          overflow: 'hidden',
-        }}
+        activeOpacity={0.85}
+        style={styles.imagePicker}
       >
-        {image ? (
+        {form.image ? (
           <Image
-            source={{
-              uri: image,
-            }}
-            style={{
-              width: '100%',
-              height: '100%',
-            }}
+            source={{ uri: form.image }}
+            style={styles.imagePreview}
+            resizeMode="cover"
           />
         ) : (
-          <Text
-            style={{
-              color: '#777',
-            }}
-          >
-            Selecionar imagem
-          </Text>
+          <View style={styles.imagePlaceholder}>
+            <Text style={styles.imagePlaceholderText}>
+              Selecionar imagem de capa
+            </Text>
+            <Text style={styles.imageHint}>
+              JPG, PNG ou foto da galeria
+            </Text>
+          </View>
         )}
       </TouchableOpacity>
 
-      <TextInput
-        placeholder="Título do evento"
-        placeholderTextColor="#777"
-        value={title}
-        onChangeText={setTitle}
-        style={inputStyle}
-      />
-
-      <TextInput
-        placeholder="Descrição"
-        placeholderTextColor="#777"
-        multiline
-        value={description}
-        onChangeText={setDescription}
-        style={[
-          inputStyle,
-          {
-            height: 120,
-            textAlignVertical: 'top',
-          },
-        ]}
-      />
-
-      <TextInput
-        placeholder="Artista / Palestrante"
-        placeholderTextColor="#777"
-        value={artist}
-        onChangeText={setArtist}
-        style={inputStyle}
-      />
-
-      <TextInput
-        placeholder="Link do ingresso"
-        placeholderTextColor="#777"
-        value={ticketLink}
-        onChangeText={setTicketLink}
-        style={inputStyle}
-      />
-
-      <Text style={labelStyle}>
-        Gênero Musical
-      </Text>
-
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={{
-          marginBottom: 24,
-        }}
-      >
-        {genres.map((item) => (
-          <TouchableOpacity
-            key={item}
-            onPress={() =>
-              setGenre(item)
-            }
-            style={{
-              backgroundColor:
-                genre === item
-                  ? '#7B61FF'
-                  : '#1A1A1F',
-
-              paddingVertical: 12,
-              paddingHorizontal: 18,
-              borderRadius: 14,
-              marginRight: 12,
-            }}
-          >
-            <Text
-              style={{
-                color: '#FFFFFF',
-              }}
-            >
-              {item}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-
-      <Text style={labelStyle}>
-        Categoria
-      </Text>
-
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={{
-          marginBottom: 24,
-        }}
-      >
-        {categories.map((item) => (
-          <TouchableOpacity
-            key={item}
-            onPress={() =>
-              setCategory(item)
-            }
-            style={{
-              backgroundColor:
-                category === item
-                  ? '#7B61FF'
-                  : '#1A1A1F',
-
-              paddingVertical: 12,
-              paddingHorizontal: 18,
-              borderRadius: 14,
-              marginRight: 12,
-            }}
-          >
-            <Text
-              style={{
-                color: '#FFFFFF',
-              }}
-            >
-              {item}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-
-      <View
-        style={{
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: 32,
-        }}
-      >
-        <Text style={labelStyle}>
-          Evento privado
-        </Text>
-
-        <Switch
-          value={privateEvent}
-          onValueChange={
-            setPrivateEvent
+      <View style={styles.fieldGroup}>
+        <Text style={styles.label}>Título do evento</Text>
+        <TextInput
+          placeholder="Ex.: Festa Open Bar"
+          placeholderTextColor="#777"
+          value={form.title}
+          onChangeText={(text) =>
+            setForm((prev) => ({ ...prev, title: text }))
           }
+          style={styles.input}
         />
       </View>
 
-      <TouchableOpacity
-        onPress={handleCreateEvent}
-        style={{
-          backgroundColor: '#7B61FF',
-          padding: 18,
-          borderRadius: 16,
-          alignItems: 'center',
-          marginBottom: 40,
-        }}
-      >
-        <Text
-          style={{
-            color: '#FFFFFF',
-            fontWeight: 'bold',
-            fontSize: 16,
-          }}
+      <View style={styles.fieldGroup}>
+        <Text style={styles.label}>Descrição</Text>
+        <TextInput
+          placeholder="Conte um pouco sobre o evento"
+          placeholderTextColor="#777"
+          value={form.description}
+          onChangeText={(text) =>
+            setForm((prev) => ({ ...prev, description: text }))
+          }
+          multiline
+          style={[styles.input, styles.textArea]}
+        />
+      </View>
+
+      <View style={styles.fieldGroup}>
+        <Text style={styles.label}>Artista / Palestrante</Text>
+        <TextInput
+          placeholder="Quem vai apresentar?"
+          placeholderTextColor="#777"
+          value={form.artist}
+          onChangeText={(text) =>
+            setForm((prev) => ({ ...prev, artist: text }))
+          }
+          style={styles.input}
+        />
+      </View>
+
+      <View style={styles.fieldGroup}>
+        <Text style={styles.label}>Link do ingresso</Text>
+        <TextInput
+          placeholder="https://..."
+          placeholderTextColor="#777"
+          value={form.ticketLink}
+          onChangeText={(text) =>
+            setForm((prev) => ({ ...prev, ticketLink: text }))
+          }
+          autoCapitalize="none"
+          keyboardType="url"
+          style={styles.input}
+        />
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Gênero</Text>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
         >
-          Publicar Evento
+          <View style={styles.chipRow}>
+            {genres.map((item) => {
+              const isActive = form.genre === item;
+
+              return (
+                <TouchableOpacity
+                  key={item}
+                  onPress={() =>
+                    setForm((prev) => ({ ...prev, genre: item }))
+                  }
+                  style={[
+                    styles.chip,
+                    isActive && styles.chipActive,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.chipText,
+                      isActive && styles.chipTextActive,
+                    ]}
+                  >
+                    {item}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </ScrollView>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Categoria</Text>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+        >
+          <View style={styles.chipRow}>
+            {categories.map((item) => {
+              const isActive = form.category === item;
+
+              return (
+                <TouchableOpacity
+                  key={item}
+                  onPress={() =>
+                    setForm((prev) => ({ ...prev, category: item }))
+                  }
+                  style={[
+                    styles.chip,
+                    isActive && styles.chipActive,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.chipText,
+                      isActive && styles.chipTextActive,
+                    ]}
+                  >
+                    {item}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </ScrollView>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Visibilidade</Text>
+
+        {user?.type === 'CPF' ? (
+          <View style={styles.accessCard}>
+            <View style={styles.accessInfoRow}>
+              <Text style={styles.accessTitle}>
+                Evento Privado
+              </Text>
+              <Text style={styles.accessBadge}>CPF</Text>
+            </View>
+            <Text style={styles.accessDescription}>
+              Contas CPF podem criar apenas eventos privados.
+            </Text>
+          </View>
+        ) : (
+          <View style={styles.accessRow}>
+            <View style={styles.accessTextBlock}>
+              <Text style={styles.accessTitle}>
+                Evento privado
+              </Text>
+              <Text style={styles.accessHint}>
+                Eventos privados aparecem apenas para convidados.
+              </Text>
+            </View>
+            <Switch
+              value={form.privateEvent}
+              onValueChange={(value) =>
+                setForm((prev) => ({
+                  ...prev,
+                  privateEvent: value,
+                }))
+              }
+            />
+          </View>
+        )}
+      </View>
+
+      <View style={styles.footer}>
+        <TouchableOpacity
+          onPress={handleCreateEvent}
+          disabled={isSubmitting}
+          style={[
+            styles.submitButton,
+            isSubmitting && styles.submitButtonDisabled,
+          ]}
+        >
+          {isSubmitting ? (
+            <ActivityIndicator color="#FFFFFF" />
+          ) : (
+            <Text style={styles.submitButtonText}>
+              Publicar Evento
+            </Text>
+          )}
+        </TouchableOpacity>
+
+        <Text style={styles.footerHint}>
+          Após publicar, você verá o evento nas abas principais.
         </Text>
-      </TouchableOpacity>
+      </View>
     </ScrollView>
   );
 }
 
-const inputStyle = {
-  backgroundColor: '#1A1A1F',
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#0F0F11',
+  },
 
-  color: '#FFFFFF',
+  content: {
+    padding: 24,
+    paddingBottom: 36,
+    gap: 22,
+  },
 
-  padding: 16,
+  title: {
+    color: '#FFFFFF',
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginTop: 8,
+  },
 
-  borderRadius: 16,
+  subtitle: {
+    color: '#A0A0B2',
+    fontSize: 15,
+    marginTop: 6,
+  },
 
-  marginBottom: 16,
-};
+  imagePicker: {
+    width: '100%',
+    height: 220,
+    borderRadius: 22,
+    overflow: 'hidden',
+    backgroundColor: '#141418',
+    borderWidth: 1,
+    borderColor: '#23232B',
+  },
 
-const labelStyle = {
-  color: '#FFFFFF',
+  imagePreview: {
+    width: '100%',
+    height: '100%',
+  },
 
-  fontSize: 18,
+  imagePlaceholder: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 6,
+  },
 
-  fontWeight: 'bold' as const,
+  imagePlaceholderText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '600',
+  },
 
-  marginBottom: 12,
-};
+  imageHint: {
+    color: '#777',
+    fontSize: 13,
+  },
+
+  fieldGroup: {
+    gap: 8,
+  },
+
+  label: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+
+  input: {
+    backgroundColor: '#1A1A1F',
+    color: '#FFFFFF',
+    padding: 16,
+    borderRadius: 14,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: '#23232B',
+  },
+
+  textArea: {
+    minHeight: 120,
+    textAlignVertical: 'top',
+  },
+
+  section: {
+    gap: 10,
+  },
+
+  sectionTitle: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+
+  chipRow: {
+    flexDirection: 'row',
+    gap: 10,
+    paddingVertical: 4,
+  },
+
+  chip: {
+    paddingVertical: 12,
+    paddingHorizontal: 18,
+    borderRadius: 999,
+    backgroundColor: '#1A1A1F',
+    borderWidth: 1,
+    borderColor: '#23232B',
+  },
+
+  chipActive: {
+    backgroundColor: '#7B61FF',
+    borderColor: '#7B61FF',
+  },
+
+  chipText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+
+  chipTextActive: {
+    color: '#FFFFFF',
+  },
+
+  accessRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#1A1A1F',
+    padding: 18,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#23232B',
+  },
+
+  accessTextBlock: {
+    flex: 1,
+    paddingRight: 16,
+  },
+
+  accessTitle: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+
+  accessHint: {
+    color: '#A0A0B2',
+    fontSize: 13,
+    marginTop: 4,
+  },
+
+  accessCard: {
+    backgroundColor: '#1A1A1F',
+    padding: 18,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#23232B',
+    gap: 10,
+  },
+
+  accessInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+
+  accessBadge: {
+    color: '#7B61FF',
+    fontSize: 13,
+    fontWeight: '700',
+    backgroundColor: 'rgba(123,97,255,0.12)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+    overflow: 'hidden',
+  },
+
+  accessDescription: {
+    color: '#A0A0B2',
+    fontSize: 14,
+  },
+
+  footer: {
+    gap: 10,
+    paddingTop: 6,
+  },
+
+  submitButton: {
+    backgroundColor: '#7B61FF',
+    padding: 16,
+    borderRadius: 16,
+    alignItems: 'center',
+  },
+
+  submitButtonDisabled: {
+    opacity: 0.6,
+  },
+
+  submitButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+
+  footerHint: {
+    color: '#A0A0B2',
+    fontSize: 13,
+    textAlign: 'center',
+  },
+});

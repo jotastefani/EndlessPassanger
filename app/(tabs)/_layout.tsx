@@ -1,9 +1,9 @@
 import { Tabs } from 'expo-router';
 
-import ChatIcon from '../../assets/icons/chatIcon.svg';
-import HomeIcon from '../../assets/icons/homeIcon.svg';
-import PlusIcon from '../../assets/icons/plusIcon.svg';
-import ProfileIcon from '../../assets/icons/profileIcon.svg';
+import HomeIcon from '../../assets/icons/IconHome.png';
+import PlusIcon from '../../assets/icons/IconPlus.png';
+import ProfileIcon from '../../assets/icons/IconProfile.png';
+import SearchIcon from '../../assets/icons/IconSearch.png';
 
 export default function TabsLayout() {
   return (
@@ -16,7 +16,6 @@ export default function TabsLayout() {
         name="index"
         options={{
           title: 'Home',
-
           tabBarIcon: ({ color }) => (
             <HomeIcon width={24} height={24} fill={color} />
           ),
@@ -24,9 +23,12 @@ export default function TabsLayout() {
       />
 
       <Tabs.Screen
-        name="chat"
+        name="map"
         options={{
-          title: 'Chat',
+          title: 'Mapa',
+          tabBarIcon: ({ color }) => (
+            <SearchIcon width={24} height={24} fill={color} />
+          ),
         }}
       />
 
@@ -34,7 +36,6 @@ export default function TabsLayout() {
         name="create"
         options={{
           title: 'Criar',
-
           tabBarIcon: ({ color }) => (
             <PlusIcon width={24} height={24} fill={color} />
           ),
@@ -45,9 +46,8 @@ export default function TabsLayout() {
         name="favorites"
         options={{
           title: 'Favoritos',
-
           tabBarIcon: ({ color }) => (
-            <ChatIcon width={24} height={24} fill={color} />
+            <ProfileIcon width={24} height={24} fill={color} />
           ),
         }}
       />
@@ -56,7 +56,6 @@ export default function TabsLayout() {
         name="profile"
         options={{
           title: 'Perfil',
-
           tabBarIcon: ({ color }) => (
             <ProfileIcon width={24} height={24} fill={color} />
           ),

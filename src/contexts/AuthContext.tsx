@@ -29,13 +29,33 @@ type UserData = {
 
   email: string;
 
-  name: string;
+  name?: string;
 
   companyName?: string;
 
-  type: string;
+  cpf?: string;
+
+  cnpj?: string;
+
+  type: 'CPF' | 'CNPJ';
 
   avatar: string;
+};
+
+type SignUpData = {
+  name?: string;
+
+  companyName?: string;
+
+  cpf?: string;
+
+  cnpj?: string;
+
+  email: string;
+
+  password: string;
+
+  type: 'CPF' | 'CNPJ';
 };
 
 type AuthContextData = {
@@ -49,10 +69,7 @@ type AuthContextData = {
   ) => Promise<boolean>;
 
   signUp: (
-    name: string,
-    email: string,
-    password: string,
-    type: string
+    data: SignUpData
   ) => Promise<boolean>;
 
   signOutUser: () => Promise<void>;
@@ -130,29 +147,33 @@ export function AuthProvider({
   }
 
   async function signUp(
-    name: string,
-    email: string,
-    password: string,
-    type: string
+    data: SignUpData
   ) {
     const firebaseUser =
       await registerUser(
-        email,
-        password
+        data.email,
+        data.password
       );
 
     if (!firebaseUser) {
       return false;
     }
 
-    const userData = {
+    const userData: UserData = {
       uid: firebaseUser.uid,
 
-      name,
+      email: data.email,
 
-      email,
+      name: data.name,
 
-      type,
+      companyName:
+        data.companyName,
+
+      cpf: data.cpf,
+
+      cnpj: data.cnpj,
+
+      type: data.type,
 
       avatar:
         'https://i.pravatar.cc/300',

@@ -1,55 +1,52 @@
-<<<<<<< HEAD
-# EndlessPassanger
-Localizdor de Events
-=======
-# Welcome to your Expo app 👋
+# EndPass
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Aplicativo de eventos em tempo real com login, mapa e criação de eventos. Construído com Expo, React Native, Firebase e React Native Maps.
 
-## Get started
+## Requisitos
 
-1. Install dependencies
+- Node.js
+- npm ou yarn
+- Expo Go ou build de desenvolvimento
+- Projeto Firebase com Auth e Firestore habilitados
 
-   ```bash
-   npm install
-   ```
+## Como rodar
 
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
+1. Instale as dependências:
 ```bash
-npm run reset-project
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+2. Inicie o projeto:
+```bash
+npx expo start
+```
 
-## Learn more
+3. Abra no Expo Go (Android/iOS) ou em um emulador configurado.
 
-To learn more about developing your project with Expo, look at the following resources:
+## Estrutura do projeto
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+- `app/`: rotas públicas e protegidas, tabs e fluxos principais.
+- `src/`: contextos, serviços, hooks e componentes reutilizáveis.
+- `assets/`: imagens e ícones do app.
 
-## Join the community
+## Funcionalidades principais
 
-Join our community of developers creating universal apps.
+- Onboarding e fluxo de login/cadastro (CPF e CNPJ).
+- Mapa com eventos e marcadores.
+- Criação de eventos com imagem, localização e regras de visibilidade.
+- Favoritos e componente de card padronizado.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
->>>>>>> 1b2e262 (Initial commit)
+## Documentação adicional
+
+- `docs/vision.md`
+- `docs/screens.md`
+- `docs/architecture.md`
+- `docs/business-rules.md`
+- `docs/services.md`
+- `docs/quality.md`
+- `docs/deploy.md`
+
+## Observações
+
+- Email/Password precisa estar habilitado no Firebase Auth.
+- O app usa tema escuro e assets visuais para abas e cards.

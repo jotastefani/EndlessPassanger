@@ -8,12 +8,11 @@ import {
 
 import {
   getAuth,
-  getReactNativePersistence,
   initializeAuth,
 } from 'firebase/auth';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyB6TLAopX3aLNZ9IRj3BWgcV_jLI6joMHY",
+  apiKey: "AIzaSy...oMHY",
 
   authDomain:
     "endpass-v1.firebaseapp.com",
@@ -43,9 +42,7 @@ export const auth =
   getApps().length === 1
     ? initializeAuth(app, {
         persistence:
-          getReactNativePersistence(
-            AsyncStorage
-          ),
+          AsyncStorage as any,
       })
     : getAuth(app);
 

@@ -36,6 +36,7 @@ export default function FavoritesScreen() {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <EventCard
+            id={item.id}
             title={item.title}
             location={item.location}
             date={item.date}
