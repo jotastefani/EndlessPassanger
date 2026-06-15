@@ -1,19 +1,16 @@
-import { useRouter } from 'expo-router';
-import { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { Redirect } from 'expo-router';
 
 export default function IndexScreen() {
-  const router = useRouter();
   const { user, loading } = useAuth();
 
-  useEffect(() => {
-    if (loading) return;
-    if (user) {
-      router.push('/(tabs)/index');
-    } else {
-      router.push('/(auth)/login');
-    }
-  }, [loading, user, router]);
+  if (loading) {
+    return null;
+  }
 
-  return null;
+  if (user) {
+    return <Redirect href="/(tabs)" />;
+  }
+
+  return <Redirect href="/(auth)/login" />;
 }

@@ -1,10 +1,8 @@
 import { useEffect, useState } from 'react';
 
-import * as Location from 'expo-location';
-import { Alert } from 'react-native';
-import { ActivityIndicator } from 'react-native';
-
 import {
+  StyleSheet,
+  Alert,
   Image,
   ScrollView,
   Switch,
@@ -12,7 +10,10 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  ActivityIndicator,
 } from 'react-native';
+
+import * as Location from 'expo-location';
 
 import * as ImagePicker from 'expo-image-picker';
 
@@ -148,22 +149,29 @@ export default function CreateEventScreen() {
 
     setForm((prev) => ({ ...prev, submitting: true }));
 
+    const isPrivate =
+      user?.type === 'CPF'
+        ? true
+        : form.privateEvent;
+
     const payload = {
       title: form.title.trim(),
       description: form.description.trim(),
       category: form.category,
       genre: form.genre,
-      ticketLink: form.ticketLink.trim(),
-      artist: form.artist.trim(),
-      privateEvent:
-        user?.type === 'CPF'
-          ? true
-          : form.privateEvent,
+      ticketLink: form.ticketLink.trim() || undefined,
+      artist: form.artist.trim() || undefined,
+      privateEvent: isPrivate,
+      type: isPrivate
+        ? 'PRIVATE'
+        : 'PUBLIC',
       image: form.image,
       latitude: form.latitude,
       longitude: form.longitude,
+      date: new Date().toISOString(),
+      createdBy: user?.uid,
       interestedCount: 0,
-      createdAt: new Date().toISOString(),
+      ticketClasses: [],
     };
 
     const eventId = await createEvent(payload);
@@ -360,17 +368,20 @@ export default function CreateEventScreen() {
               <Text style={styles.accessBadge}>CPF</Text>
             </View>
             <Text style={styles.accessDescription}>
-              Contas CPF podem criar apenas eventos privados.
+              Contas CPF publicam apenas eventos privados e essa opção
+              não pode ser alterada.
             </Text>
           </View>
         ) : (
           <View style={styles.accessRow}>
             <View style={styles.accessTextBlock}>
               <Text style={styles.accessTitle}>
-                Evento privado
+                Evento público
               </Text>
               <Text style={styles.accessHint}>
-                Eventos privados aparecem apenas para convidados.
+                {form.privateEvent
+                  ? 'Evento privado.'
+                  : 'Evento público. Qualquer pessoa poderá ver este evento.'}
               </Text>
             </View>
             <Switch

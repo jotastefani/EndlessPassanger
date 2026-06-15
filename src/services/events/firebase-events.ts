@@ -8,7 +8,7 @@ import {
 
 import { db } from '@/services/firebase-config';
 
-import type { Event } from '@/types/events';
+import type { Event } from '@/types/event';
 
 const eventFromSnapshot = (
   doc: QueryDocumentSnapshot<DocumentData>,

@@ -1,23 +1,47 @@
 import { Tabs } from 'expo-router';
 
-import HomeIcon from '../../assets/icons/IconHome.png';
-import PlusIcon from '../../assets/icons/IconPlus.png';
-import ProfileIcon from '../../assets/icons/IconProfile.png';
-import SearchIcon from '../../assets/icons/IconSearch.png';
+import {
+  Heart,
+  Home,
+  Map,
+  MessageCircle,
+  PlusCircle,
+  User,
+} from 'lucide-react-native';
 
 export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
+
+        tabBarStyle: {
+          backgroundColor: '#1A1A1F',
+          borderTopColor: '#2A2A32',
+          height: 110,
+          paddingTop: 10,
+          paddingBottom: 64,
+        },
+
+        tabBarLabelStyle: {
+          fontSize: 12,
+          marginTop: 2,
+        },
+
+        tabBarIconStyle: {
+          marginTop: 4,
+        },
+
+        tabBarActiveTintColor: '#7B61FF',
+        tabBarInactiveTintColor: '#A0A0B2',
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
           title: 'Home',
-          tabBarIcon: ({ color }) => (
-            <HomeIcon width={24} height={24} fill={color} />
+          tabBarIcon: ({ color, size }) => (
+            <Home color={color} size={size} />
           ),
         }}
       />
@@ -26,8 +50,8 @@ export default function TabsLayout() {
         name="map"
         options={{
           title: 'Mapa',
-          tabBarIcon: ({ color }) => (
-            <SearchIcon width={24} height={24} fill={color} />
+          tabBarIcon: ({ color, size }) => (
+            <Map color={color} size={size} />
           ),
         }}
       />
@@ -36,8 +60,8 @@ export default function TabsLayout() {
         name="create"
         options={{
           title: 'Criar',
-          tabBarIcon: ({ color }) => (
-            <PlusIcon width={24} height={24} fill={color} />
+          tabBarIcon: ({ color, size }) => (
+            <PlusCircle color={color} size={size} />
           ),
         }}
       />
@@ -46,8 +70,18 @@ export default function TabsLayout() {
         name="favorites"
         options={{
           title: 'Favoritos',
-          tabBarIcon: ({ color }) => (
-            <ProfileIcon width={24} height={24} fill={color} />
+          tabBarIcon: ({ color, size }) => (
+            <Heart color={color} size={size} />
+          ),
+        }}
+      />
+
+      <Tabs.Screen
+        name="chat"
+        options={{
+          title: 'Chat',
+          tabBarIcon: ({ color, size }) => (
+            <MessageCircle color={color} size={size} />
           ),
         }}
       />
@@ -56,8 +90,8 @@ export default function TabsLayout() {
         name="profile"
         options={{
           title: 'Perfil',
-          tabBarIcon: ({ color }) => (
-            <ProfileIcon width={24} height={24} fill={color} />
+          tabBarIcon: ({ color, size }) => (
+            <User color={color} size={size} />
           ),
         }}
       />

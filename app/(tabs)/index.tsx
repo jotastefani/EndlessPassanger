@@ -1,7 +1,15 @@
 import {
+  useEffect,
+  useState,
+} from 'react';
+
+import {
+  ActivityIndicator,
+  Linking,
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from 'react-native';
 
@@ -9,7 +17,57 @@ import MapView, {
   Marker,
 } from 'react-native-maps';
 
+import {
+  getSymplaEvents,
+} from '../../src/services/sympla/sympla-events';
+
+import type {
+  SymplaMapEvent,
+} from '../../src/services/sympla/sympla-events';
+
 export default function HomeScreen() {
+  const [events, setEvents] =
+    useState<SymplaMapEvent[]>([]);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [selectedEvent, setSelectedEvent] =
+    useState<SymplaMapEvent | null>(
+      null
+    );
+
+  useEffect(() => {
+    loadSymplaEvents();
+  }, []);
+
+  async function loadSymplaEvents() {
+    try {
+      setLoading(true);
+
+      const data =
+        await getSymplaEvents();
+
+      setEvents(data);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function handleOpenTicket() {
+    if (!selectedEvent?.ticketLink) {
+      alert(
+        'Este evento não possui link disponível.'
+      );
+
+      return;
+    }
+
+    Linking.openURL(
+      selectedEvent.ticketLink
+    );
+  }
+
   return (
     <View style={styles.container}>
       <MapView
@@ -21,23 +79,25 @@ export default function HomeScreen() {
           longitudeDelta: 0.08,
         }}
       >
-        <Marker
-          coordinate={{
-            latitude: -22.7338,
-            longitude: -47.6476,
-          }}
-          title="Festival Open Air"
-          description="Evento próximo"
-        />
+        {events.map((event) => (
+          <Marker
+            key={event.id}
+            coordinate={{
+              latitude:
+                event.latitude,
 
-        <Marker
-          coordinate={{
-            latitude: -22.721,
-            longitude: -47.649,
-          }}
-          title="Show Sertanejo"
-          description="Hoje às 22h"
-        />
+              longitude:
+                event.longitude,
+            }}
+            title={event.title}
+            description={
+              event.location
+            }
+            onPress={() =>
+              setSelectedEvent(event)
+            }
+          />
+        ))}
       </MapView>
 
       <View style={styles.overlay}>
@@ -46,7 +106,7 @@ export default function HomeScreen() {
         </Text>
 
         <Text style={styles.subtitulo}>
-          Encontre o lugar com sua vibe para se acabar
+          Encontre eventos da Sympla próximos de você
         </Text>
 
         <Text style={styles.h6}>
@@ -58,7 +118,52 @@ export default function HomeScreen() {
           placeholderTextColor="#777"
           style={styles.searchInput}
         />
+
+        {loading ? (
+          <View style={styles.loadingBox}>
+            <ActivityIndicator
+              color="#7B61FF"
+            />
+
+            <Text style={styles.counter}>
+              Buscando eventos da Sympla...
+            </Text>
+          </View>
+        ) : (
+          <Text style={styles.counter}>
+            {events.length} eventos encontrados
+          </Text>
+        )}
       </View>
+
+      {selectedEvent && (
+        <View style={styles.eventCard}>
+          <Text style={styles.eventSource}>
+            SYMPLA
+          </Text>
+
+          <Text style={styles.eventTitle}>
+            {selectedEvent.title}
+          </Text>
+
+          <Text style={styles.eventInfo}>
+            {selectedEvent.location}
+          </Text>
+
+          <Text style={styles.eventInfo}>
+            {selectedEvent.date}
+          </Text>
+
+          <TouchableOpacity
+            onPress={handleOpenTicket}
+            style={styles.ticketButton}
+          >
+            <Text style={styles.ticketText}>
+              Ver ingresso
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 }
@@ -66,18 +171,23 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+
     backgroundColor: '#05070A',
   },
 
   map: {
     width: '100%',
+
     height: '100%',
   },
 
   overlay: {
     position: 'absolute',
+
     top: 70,
+
     left: 20,
+
     right: 20,
 
     backgroundColor: '#111318',
@@ -87,7 +197,9 @@ const styles = StyleSheet.create({
     padding: 22,
 
     shadowColor: '#000',
+
     shadowOpacity: 0.25,
+
     shadowRadius: 12,
 
     elevation: 8,
@@ -135,5 +247,87 @@ const styles = StyleSheet.create({
     fontSize: 16,
 
     marginTop: 18,
+  },
+
+  loadingBox: {
+    marginTop: 12,
+
+    flexDirection: 'row',
+
+    alignItems: 'center',
+
+    gap: 8,
+  },
+
+  counter: {
+    color: '#BFC6CC',
+
+    marginTop: 12,
+
+    fontSize: 13,
+  },
+
+  eventCard: {
+    position: 'absolute',
+
+    left: 20,
+
+    right: 20,
+
+    bottom: 110,
+
+    backgroundColor: '#111318',
+
+    borderRadius: 24,
+
+    padding: 20,
+
+    elevation: 10,
+  },
+
+  eventSource: {
+    color: '#7B61FF',
+
+    fontSize: 12,
+
+    fontWeight: 'bold',
+
+    marginBottom: 8,
+  },
+
+  eventTitle: {
+    color: '#FFFFFF',
+
+    fontSize: 20,
+
+    fontWeight: 'bold',
+
+    marginBottom: 8,
+  },
+
+  eventInfo: {
+    color: '#BFC6CC',
+
+    fontSize: 14,
+
+    marginBottom: 4,
+  },
+
+  ticketButton: {
+    backgroundColor: '#7B61FF',
+
+    padding: 14,
+
+    borderRadius: 14,
+
+    alignItems: 'center',
+
+    marginTop: 16,
+  },
+
+  ticketText: {
+    color: '#FFFFFF',
+
+    fontWeight: 'bold',
   },
 });

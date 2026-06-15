@@ -1,28 +1,49 @@
 import {
-  useEffect,
-  useState,
+    useCallback,
+    useEffect,
+    useState,
 } from 'react';
 
 import {
-  StyleSheet,
-  View,
-  Text,
-  ActivityIndicator,
-  Alert,
+    ActivityIndicator,
+    Alert,
+    StyleSheet,
+    Text,
+    View,
 } from 'react-native';
 
 import MapView, {
-  Marker,
-  PROVIDER_GOOGLE,
+    Marker,
+    PROVIDER_GOOGLE,
 } from 'react-native-maps';
 
 import {
-  getEvents,
+    getEvents,
 } from '@/services/events/firebase-events';
 
-import type { Event } from '@/types/events';
+import type { Event } from '@/types/event';
+
+import { useAuth } from '@/contexts/AuthContext';
+
+function isValidCoordinate(value: number | undefined): value is number {
+  return typeof value === 'number' && Number.isFinite(value);
+}
+
+function formatEventDescription(event: Event): string {
+  const category = event.category?.trim();
+
+  if (!category) {
+    return event.privateEvent ? 'Evento privado' : 'Evento público';
+  }
+
+  return event.privateEvent
+    ? `${category} • Privado`
+    : category;
+}
 
 export default function MapScreen() {
+  const { user } = useAuth();
+
   const [events, setEvents] =
     useState<Event[]>([]);
 
@@ -32,18 +53,31 @@ export default function MapScreen() {
   const [error, setError] =
     useState<string | null>(null);
 
-  useEffect(() => {
-    loadEvents();
-  }, []);
-
-  async function loadEvents() {
+  const loadEvents = useCallback(async () => {
     try {
       setError(null);
       setLoading(true);
       const data =
         await getEvents();
 
-      setEvents(data ?? []);
+      const visibleEvents =
+        (Array.isArray(data) ? data : [])
+          .filter((event) => {
+            if (
+              !isValidCoordinate(event.latitude) ||
+              !isValidCoordinate(event.longitude)
+            ) {
+              return false;
+            }
+
+            if (!user) {
+              return event.privateEvent === false;
+            }
+
+            return true;
+          });
+
+      setEvents(visibleEvents);
     } catch (e) {
       const message =
         e instanceof Error
@@ -55,15 +89,11 @@ export default function MapScreen() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [user]);
 
-  const hasValidEvents = events.some(
-    (event) =>
-      typeof event.latitude ===
-        'number' &&
-      typeof event.longitude ===
-        'number',
-  );
+  useEffect(() => {
+    loadEvents();
+  }, [loadEvents]);
 
   if (error) {
     return (
@@ -95,33 +125,24 @@ export default function MapScreen() {
           longitudeDelta: 0.08,
         }}
       >
-        {events.map((event) => {
-          const coordinate = {
-            latitude:
-              typeof event.latitude ===
-              'number'
-                ? event.latitude
-                : -22.7338,
-
-            longitude:
-              typeof event.longitude ===
-              'number'
-                ? event.longitude
-                : -47.6476,
-          };
-
-          return (
-            <Marker
-              key={event.id}
-              coordinate={coordinate}
-              title={event.title}
-              description={event.category}
-            />
-          );
-        })}
+        {events.map((event) => (
+          <Marker
+            key={event.id}
+            coordinate={{
+              latitude: event.latitude,
+              longitude: event.longitude,
+            }}
+            title={event.title}
+            description={
+              event.category
+                ? formatEventDescription(event)
+                : undefined
+            }
+          />
+        ))}
       </MapView>
 
-      {!hasValidEvents && (
+      {events.length === 0 && (
         <View
           style={styles.emptyOverlay}
           pointerEvents="none"

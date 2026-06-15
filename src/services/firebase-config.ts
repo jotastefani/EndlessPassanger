@@ -1,49 +1,60 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-import { getApps, initializeApp } from 'firebase/app';
-
-import {
-  getFirestore,
-} from 'firebase/firestore';
+import { initializeApp } from 'firebase/app';
 
 import {
   getAuth,
+  getReactNativePersistence,
   initializeAuth,
 } from 'firebase/auth';
 
+import { getFirestore } from 'firebase/firestore';
+
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 const firebaseConfig = {
-  apiKey: "AIzaSy...oMHY",
+  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
 
   authDomain:
-    "endpass-v1.firebaseapp.com",
+    process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
 
   projectId:
-    "endpass-v1",
+    process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
 
   storageBucket:
-    "endpass-v1.firebasestorage.app",
+    process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
 
   messagingSenderId:
-    "509921238446",
+    process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
 
   appId:
-    "1:509921238446:web:5232060d443741c3bc7c3f",
+    process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
 };
 
-const app =
-  getApps().length === 0
-    ? initializeApp(firebaseConfig)
-    : getApps()[0];
+if (
+  !firebaseConfig.apiKey ||
+  !firebaseConfig.authDomain ||
+  !firebaseConfig.projectId ||
+  !firebaseConfig.appId
+) {
+  throw new Error(
+    'Firebase config inválido. Verifique se o arquivo .env existe na raiz do projeto e se todas as variáveis EXPO_PUBLIC_FIREBASE_* foram preenchidas.'
+  );
+}
 
-export const db =
-  getFirestore(app);
+const app = initializeApp(firebaseConfig);
 
-export const auth =
-  getApps().length === 1
-    ? initializeAuth(app, {
-        persistence:
-          AsyncStorage as any,
-      })
-    : getAuth(app);
+let authInstance;
 
-export default app;
+try {
+  authInstance = initializeAuth(app, {
+    persistence:
+      getReactNativePersistence(
+        AsyncStorage
+      ),
+  });
+} catch (error) {
+  authInstance = getAuth(app);
+}
+
+export const auth = authInstance;
+
+export const db = getFirestore(app);
