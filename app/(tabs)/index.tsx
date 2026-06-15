@@ -18,40 +18,60 @@ import MapView, {
 } from 'react-native-maps';
 
 import {
-  getSymplaEvents,
-} from '../../src/services/sympla/sympla-events';
+  getTicketmasterEvents,
+} from '../../src/services/ticketmaster/ticketmaster-events';
 
 import type {
-  SymplaMapEvent,
-} from '../../src/services/sympla/sympla-events';
+  TicketmasterMapEvent,
+} from '../../src/services/ticketmaster/ticketmaster-events';
 
 export default function HomeScreen() {
   const [events, setEvents] =
-    useState<SymplaMapEvent[]>([]);
+    useState<TicketmasterMapEvent[]>([]);
 
   const [loading, setLoading] =
     useState(true);
 
-  const [selectedEvent, setSelectedEvent] =
-    useState<SymplaMapEvent | null>(
+  const [search, setSearch] =
+    useState('');
+
+  const [
+    selectedEvent,
+    setSelectedEvent,
+  ] =
+    useState<TicketmasterMapEvent | null>(
       null
     );
 
   useEffect(() => {
-    loadSymplaEvents();
+    loadEvents();
   }, []);
 
-  async function loadSymplaEvents() {
+  async function loadEvents(
+    keyword = ''
+  ) {
     try {
       setLoading(true);
 
       const data =
-        await getSymplaEvents();
+        await getTicketmasterEvents({
+          keyword,
+          countryCode: 'BR',
+          size: 50,
+        });
 
       setEvents(data);
+
+      if (data.length > 0) {
+        setSelectedEvent(data[0]);
+      }
     } finally {
       setLoading(false);
     }
+  }
+
+  function handleSearch() {
+    loadEvents(search);
   }
 
   function handleOpenTicket() {
@@ -73,10 +93,10 @@ export default function HomeScreen() {
       <MapView
         style={styles.map}
         initialRegion={{
-          latitude: -22.7338,
-          longitude: -47.6476,
-          latitudeDelta: 0.08,
-          longitudeDelta: 0.08,
+          latitude: -23.5505,
+          longitude: -46.6333,
+          latitudeDelta: 8,
+          longitudeDelta: 8,
         }}
       >
         {events.map((event) => (
@@ -93,6 +113,7 @@ export default function HomeScreen() {
             description={
               event.location
             }
+            pinColor="#7B61FF"
             onPress={() =>
               setSelectedEvent(event)
             }
@@ -106,18 +127,31 @@ export default function HomeScreen() {
         </Text>
 
         <Text style={styles.subtitulo}>
-          Encontre eventos da Sympla próximos de você
+          Encontre eventos públicos no mapa
         </Text>
 
         <Text style={styles.h6}>
-          Are you ready?
+          Powered by Ticketmaster Discovery
         </Text>
 
         <TextInput
-          placeholder="Pesquisar eventos..."
+          placeholder="Pesquisar show, festa, artista..."
           placeholderTextColor="#777"
+          value={search}
+          onChangeText={setSearch}
           style={styles.searchInput}
+          returnKeyType="search"
+          onSubmitEditing={handleSearch}
         />
+
+        <TouchableOpacity
+          onPress={handleSearch}
+          style={styles.searchButton}
+        >
+          <Text style={styles.searchButtonText}>
+            Buscar eventos
+          </Text>
+        </TouchableOpacity>
 
         {loading ? (
           <View style={styles.loadingBox}>
@@ -126,9 +160,13 @@ export default function HomeScreen() {
             />
 
             <Text style={styles.counter}>
-              Buscando eventos da Sympla...
+              Buscando eventos...
             </Text>
           </View>
+        ) : events.length === 0 ? (
+          <Text style={styles.counter}>
+            Nenhum evento público encontrado.
+          </Text>
         ) : (
           <Text style={styles.counter}>
             {events.length} eventos encontrados
@@ -139,11 +177,15 @@ export default function HomeScreen() {
       {selectedEvent && (
         <View style={styles.eventCard}>
           <Text style={styles.eventSource}>
-            SYMPLA
+            TICKETMASTER
           </Text>
 
           <Text style={styles.eventTitle}>
             {selectedEvent.title}
+          </Text>
+
+          <Text style={styles.eventDescription}>
+            {selectedEvent.description}
           </Text>
 
           <Text style={styles.eventInfo}>
@@ -159,7 +201,7 @@ export default function HomeScreen() {
             style={styles.ticketButton}
           >
             <Text style={styles.ticketText}>
-              Ver ingresso
+              Ver evento
             </Text>
           </TouchableOpacity>
         </View>
@@ -249,6 +291,24 @@ const styles = StyleSheet.create({
     marginTop: 18,
   },
 
+  searchButton: {
+    backgroundColor: '#7B61FF',
+
+    padding: 14,
+
+    borderRadius: 14,
+
+    alignItems: 'center',
+
+    marginTop: 12,
+  },
+
+  searchButtonText: {
+    color: '#FFFFFF',
+
+    fontWeight: 'bold',
+  },
+
   loadingBox: {
     marginTop: 12,
 
@@ -301,6 +361,14 @@ const styles = StyleSheet.create({
     fontSize: 20,
 
     fontWeight: 'bold',
+
+    marginBottom: 6,
+  },
+
+  eventDescription: {
+    color: '#7B61FF',
+
+    fontSize: 14,
 
     marginBottom: 8,
   },

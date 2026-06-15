@@ -1,3 +1,5 @@
+import axios from 'axios';
+
 import { symplaApi } from './sympla.api';
 
 import {
@@ -39,6 +41,22 @@ function getFallbackCoordinate(
   };
 }
 
+function toNumber(
+  value: unknown
+): number | null {
+  const numberValue =
+    Number(value);
+
+  if (
+    Number.isNaN(numberValue) ||
+    !Number.isFinite(numberValue)
+  ) {
+    return null;
+  }
+
+  return numberValue;
+}
+
 function normalizeSymplaEvent(
   event: SymplaEvent,
   index: number
@@ -46,14 +64,23 @@ function normalizeSymplaEvent(
   const fallback =
     getFallbackCoordinate(index);
 
+  const eventData =
+    event as any;
+
   const latitude =
-    event.address?.lat ||
-    event.address?.latitude ||
+    toNumber(eventData.latitude) ??
+    toNumber(eventData.lat) ??
+    toNumber(eventData.address?.latitude) ??
+    toNumber(eventData.address?.lat) ??
     fallback.latitude;
 
   const longitude =
-    event.address?.lon ||
-    event.address?.longitude ||
+    toNumber(eventData.longitude) ??
+    toNumber(eventData.lon) ??
+    toNumber(eventData.lng) ??
+    toNumber(eventData.address?.longitude) ??
+    toNumber(eventData.address?.lon) ??
+    toNumber(eventData.address?.lng) ??
     fallback.longitude;
 
   const city =
@@ -65,10 +92,15 @@ function normalizeSymplaEvent(
   const address =
     event.address?.address || '';
 
+  const addressName =
+    event.address?.name || '';
+
   const location =
     city && state
       ? `${city} - ${state}`
-      : address || 'Local não informado';
+      : address ||
+        addressName ||
+        'Local não informado';
 
   return {
     id:
@@ -102,20 +134,75 @@ function normalizeSymplaEvent(
 
 export async function getSymplaEvents(): Promise<SymplaMapEvent[]> {
   try {
+    console.log(
+      '[SYMPLA DEBUG] Token carregado:',
+      process.env.EXPO_PUBLIC_SYMPLA_TOKEN
+        ? 'SIM'
+        : 'NÃO'
+    );
+
     const response =
       await symplaApi.get('/events');
 
-    const rawEvents: SymplaEvent[] =
-      response.data?.data || [];
+    console.log(
+      '[SYMPLA DEBUG] Status:',
+      response.status
+    );
+
+    console.log(
+      '[SYMPLA DEBUG] Chaves do retorno:',
+      Object.keys(response.data || {})
+    );
+
+    console.log(
+      '[SYMPLA DEBUG] Retorno parcial:',
+      JSON.stringify(response.data).slice(
+        0,
+        1000
+      )
+    );
+
+    const rawEvents =
+      Array.isArray(response.data?.data)
+        ? response.data.data
+        : Array.isArray(response.data?.events)
+          ? response.data.events
+          : Array.isArray(response.data)
+            ? response.data
+            : [];
+
+    console.log(
+      '[SYMPLA DEBUG] Quantidade bruta de eventos:',
+      rawEvents.length
+    );
 
     return rawEvents.map(
       normalizeSymplaEvent
     );
   } catch (error) {
-    console.log(
-      'Erro ao buscar eventos da Sympla:',
-      error
-    );
+    if (axios.isAxiosError(error)) {
+      console.log(
+        '[SYMPLA DEBUG] Erro Axios status:',
+        error.response?.status
+      );
+
+      console.log(
+        '[SYMPLA DEBUG] Erro Axios data:',
+        JSON.stringify(
+          error.response?.data
+        )
+      );
+
+      console.log(
+        '[SYMPLA DEBUG] Erro Axios message:',
+        error.message
+      );
+    } else {
+      console.log(
+        '[SYMPLA DEBUG] Erro desconhecido:',
+        error
+      );
+    }
 
     return [];
   }
